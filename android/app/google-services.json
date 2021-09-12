@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "503823162169",
+    "firebase_url": "https://liguey.firebaseio.com",
+    "project_id": "liguey",
+    "storage_bucket": "liguey.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:503823162169:android:d43d2d64a243af37",
+        "android_client_info": {
+          "package_name": "wetuk.liguey"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "503823162169-hc85kbk5vmnp1mlk544l5un14dj98dut.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "wetuk.liguey",
+            "certificate_hash": "5075b9a3d2480ef80bf15ecd21069f8882534974"
+          }
+        },
+        {
+          "client_id": "503823162169-vpnkuclcsgsfn6l0042dpf1u21vvjrbn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBM5dUZ0lE4lCgfhKHMCg9Pkhg5EfacqUs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "503823162169-vpnkuclcsgsfn6l0042dpf1u21vvjrbn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
