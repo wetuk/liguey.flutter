@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -5,6 +6,9 @@ class AuthService {
   final FirebaseAuth _auth;
 
   AuthService(this._auth);
+
+  final databaseRef = FirebaseDatabase.instance.reference();
+  final Future<FirebaseApp> _future = Firebase.initializeApp();
 
   Stream<User ?> get authStateChanges => _auth.idTokenChanges();
 
@@ -16,17 +20,12 @@ class AuthService {
     }
   }
 
-  Future<String?> signUp(String email, String password) async {
+  Future<String?> register(String email, String password, String name, String surname, String phone, double credit, DateTime date) async {
     try{
       await _auth.createUserWithEmailAndPassword(email: email, password: password).then((value) async {
         User? user = FirebaseAuth.instance.currentUser;
-/*
-        await FirebaseFirestore.instance.collection("users").doc(user!.uid).set({
-          'uid': user.uid,
-          'email': email,
-          'password': password,
-        });
-  */
+        String Uid = user!.uid;
+        databaseRef.child("Users").child(Uid).set({"userCredit":credit, "userEmail":email,"userID":Uid,"userLat":1000,"userLng":1000,"userName":name +" "+ surname,"userPhone":phone}).whenComplete(() =>  _success());
       });
       return "Signed Up";
     } catch(e) {}
@@ -36,5 +35,8 @@ class AuthService {
     try{
       return await _auth.signOut();
     }catch(e){}
+  }
+
+  void _success() async {
   }
 }

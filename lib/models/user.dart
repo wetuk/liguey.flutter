@@ -1,24 +1,19 @@
 
 class UserModel {
-  final String userId;
-  final String displayName;
-  final String email;
-
-  UserModel({required this.email,this.displayName='',required this.userId});
-
-  Map<String,dynamic> toMap(){
-    return {
-      'user_id' : userId,
-      'display_name':displayName,
-      'email':email,
-    };
+  UserModel.fromMap(Map<String, dynamic> map) {
+    name = map['name']?.cast<String>();
+    email = map['email']?.cast<String>();
+    credit = map['credit']?.cast<double>();
   }
 
-  factory UserModel.fromJson(Map<String,dynamic> json){
-     return UserModel(
-        userId: json['user_id'],
-        displayName: json['display_name'],
-        email: json['email'],
-    );
+  UserModel();
+
+  String? name;
+  String? email;
+  double? credit;
+
+  @override
+  String toString() {
+    return 'UserModel{name: $name, email: $email, credit: $credit}';
   }
 }

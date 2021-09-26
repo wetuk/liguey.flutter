@@ -1,8 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_liguey/models/user.dart';
+import 'package:flutter_liguey/screens/details.dart';
 import 'package:flutter_liguey/screens/login.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -11,30 +14,66 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  String Test = "";
+  late UserModel annonce;
+  late DatabaseReference Ref;
+  late Position _currentPosition;
+  late String _currentAddress;
+  late double lat;
+  late double lng;
+
   @override
   void initState() {
     super.initState();
+    final FirebaseDatabase database = FirebaseDatabase.instance;
+    Ref = database.reference();
+    _getCurrentLocation();
   }
 
-  final databaseRef = FirebaseDatabase.instance.reference();
-  final Future<FirebaseApp> _future = Firebase.initializeApp();
-
-  void addData() {
-    databaseRef.child("test").push().set({'name': "data", 'comment': 'A good season'});
-  }
-
-  void printFirebase(){
-    databaseRef.child("Version").child("code").once().then((DataSnapshot snapshot) {
-      print('Data : ${snapshot.value}');
-      Test = 'Data : ${snapshot.value}';
+  _getCurrentLocation() {
+    Geolocator
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.best, forceAndroidLocationManager: true)
+        .then((Position position) {
+      setState(() {
+        _currentPosition = position;
+        lat = _currentPosition.latitude;
+        lng = _currentPosition.longitude;
+        _getAddressFromLatLng();
+      });
+    }).catchError((e) {
+      print(e);
     });
+  }
+
+  _getAddressFromLatLng() async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+          _currentPosition.latitude,
+          _currentPosition.longitude
+      );
+
+      Placemark place = placemarks[0];
+
+      setState(() {
+        _currentAddress = "${place.locality}, ${place.postalCode}, ${place.country}";
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future <Home?> _signOut()  async{
     await FirebaseAuth.instance.signOut();
     return null;
   }
+
+  User? user = FirebaseAuth.instance.currentUser;
+  String Uid = FirebaseAuth.instance.currentUser!.uid;
+
+  final dbRef = FirebaseDatabase.instance
+      .reference();
+
+  List lastOffres = [];
+  List lastDemandes = [];
 
   @override
   Widget build(BuildContext context) {
@@ -57,18 +96,130 @@ class _HomeState extends State<Home> {
         ),
         body: ListView(
           children: [
-            Image.asset(
-              'images/welcome_liguey.jpg',
-              width: 600,
-              height: 240,
-              fit: BoxFit.cover,
+            Container(
+              alignment: Alignment.center,
+              color: Color(0xFFE0BF92),
+              padding: EdgeInsets.all(8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8.0),
+                  topRight: Radius.circular(8.0),
+                ),
+                child: Image.asset(
+                  'images/welcome_liguey.jpg',
+                  width: 600,
+                  height: 300,
+                  //fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Text(lat.toString() + "Texte" + lng.toString()+"\n"+_currentAddress),
+            Container(
+              padding: EdgeInsets.all(8),
+              color: Color(0xFFE0BF92),
+              child: StreamBuilder(
+                stream: dbRef.child("Offre").onValue,
+                builder: (context, AsyncSnapshot<Event> snapshot) {
+                  if (snapshot.hasData) {
+                    lastOffres.clear();
+                    DataSnapshot dataValues = snapshot.data!.snapshot;
+                    Map<dynamic, dynamic> values = dataValues.value;
+                    int i=0;
+                    values.forEach((key, values) {
+                      i++;
+                      if(i < 5) {
+                        lastOffres.add(values);
+                      }
+                    });
+                    return new ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: lastOffres.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Card(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              ListTile(
+                                  onTap: () {
+
+                                  },
+                                  title: Text(lastOffres[index]["name"]),
+                                  subtitle: Text(lastOffres[index]["annonceText"]),
+                                  leading: CircleAvatar(backgroundImage: AssetImage("images/welcome_liguey.jpg")),
+                                  trailing: Icon(Icons.star)
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }
+                  return Container(child: Text("Les offres"));
+                },
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.all(8),
+              color: Color(0xFFE0BF92),
+              child: StreamBuilder(
+                stream: dbRef.child("Demande").onValue,
+                builder: (context, AsyncSnapshot<Event> snapshot) {
+                  if (snapshot.hasData) {
+                    lastDemandes.clear();
+                    DataSnapshot dataValues = snapshot.data!.snapshot;
+                    Map<dynamic, dynamic> values = dataValues.value;
+                    int j=0;
+                    values.forEach((key, values) {
+                      j++;
+                      if(j < 5) {
+                        lastDemandes.add(values);
+                      }
+                    });
+                    return new ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: lastDemandes.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Card(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              ListTile(
+                                  onTap: () {
+
+                                    if (user != null) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Details(),
+                                        ),
+                                      );
+                                    } else {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+
+                                          builder: (context) => Login(),
+                                        ),
+                                      );                                    }
+                                  },
+                                  title: Text(lastDemandes[index]["name"]),
+                                  subtitle: Text(lastDemandes[index]["annonceText"]),
+                                  leading: CircleAvatar(backgroundImage: AssetImage("images/welcome_liguey.jpg")),
+                                  trailing: Icon(Icons.star)
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }
+                  return Container(child: Text("Les Demandes"));
+                },
+              ),
             ),
           ],
         ),
       ),
     );
   }
-}
-
-class _auth {
 }
