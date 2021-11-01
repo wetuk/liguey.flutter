@@ -1,7 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_liguey/main.dart';
-import 'package:flutter_liguey/screens/home.dart';
 import 'package:flutter_liguey/screens/login.dart';
 import 'package:flutter_liguey/services/auth_services.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +19,10 @@ class _RegisterState extends State<Register> {
   TextEditingController phoneController = new TextEditingController();
 
   void _success(BuildContext context) async {
-    await Navigator.push(context,
-      MaterialPageRoute(builder: (context) => Home()),
+    await Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => MyApp()),
+          (Route<dynamic> route) => false,
     );
   }
 
@@ -44,81 +45,99 @@ class _RegisterState extends State<Register> {
           appBar: AppBar(
             title: const Text('Liguey'),
             backgroundColor: Color(0xFFE0BF92),
-            primary: false,
-            actions: <Widget>[
-              TextButton.icon(
-                  icon: Icon(Icons.person, color: Colors.black),
-                  label: Text(
-                    "Se connecter", style: TextStyle(color: Colors.black),
-                  ),
-                  onPressed: () {
-                    _login(context);
-                  }
-              )
-            ],
           ),
-          body: Center(
-            child: ListView(
-              children: [
-                Text("Se connecter / S'inscrire"),
-                Container(
-                  alignment: Alignment.center,
-                  margin: EdgeInsets.symmetric(horizontal: 50),
-                  child: TextFormField(
+          body: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 15.0, right: 15.0, top: 5.0, bottom: 0),
+                  child: Center(
+                    child: Text(
+                      "Bienvenue sur LIGUEY,\n\ninscrivez-vous pour accéder aux annonces",
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 15.0, right: 15.0, top: 5.0, bottom: 0),
+                  //padding: EdgeInsets.symmetric(horizontal: 15),
+                  child: TextField(
                     controller: emailController,
                     decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Email',
                       hintText: "EMAIL...",
                     ),
+                    textInputAction: TextInputAction.next,
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 50),
-                  child: TextFormField(
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 15.0, right: 15.0, top: 5.0, bottom: 0),
+                  //padding: EdgeInsets.symmetric(horizontal: 15),
+                  child: TextField(
                     controller: passwordController,
                     decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Password',
                       hintText: "MOT DE PASSE...",
                     ),
-                    obscureText: true,
+                    textInputAction: TextInputAction.next,
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 50),
-                  child: TextFormField(
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 15.0, right: 15.0, top: 5.0, bottom: 0),
+                  //padding: EdgeInsets.symmetric(horizontal: 15),
+                  child: TextField(
                     controller: nameController,
                     decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Name',
                       hintText: "NOM...",
                     ),
-                    obscureText: true,
+                    textInputAction: TextInputAction.next,
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 50),
-                  child: TextFormField(
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 15.0, right: 15.0, top: 5.0, bottom: 0),
+                  //padding: EdgeInsets.symmetric(horizontal: 15),
+                  child: TextField(
                     controller: surnameController,
                     decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Surname',
                       hintText: "PRENOM...",
                     ),
-                    obscureText: true,
+                    textInputAction: TextInputAction.next,
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 50),
-                  child: TextFormField(
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 15.0, right: 15.0, top: 5.0, bottom: 5.0),
+                  //padding: EdgeInsets.symmetric(horizontal: 15),
+                  child: TextField(
                     controller: phoneController,
                     decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Phone',
                       hintText: "TELEPHONE...",
                     ),
-                    obscureText: true,
+                    textInputAction: TextInputAction.done, // Hides the keyboard.
+                    keyboardType: TextInputType.number,
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.only(top: 8),
-                  height: 40,
-                  width: MediaQuery
-                      .of(context)
-                      .size
-                      .width / 3,
-                  color: Color(0xFFE0BF92),
+                  height: 50,
+                  width: 250,
+                  decoration: BoxDecoration(
+                      color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
                   child: TextButton(
                     onPressed: () {
                       final String email = emailController.text.trim();

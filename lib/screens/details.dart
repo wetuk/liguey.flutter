@@ -1,4 +1,6 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Details extends StatefulWidget {
 
@@ -8,12 +10,42 @@ class Details extends StatefulWidget {
 
 class _DetailsState extends State<Details> {
 
-  var name, annonceText, descMessage, email, phone, rate, distance;
+  var name, annonceText, descMessage, email, phone, rate, distance, image, uid, url, Aimage;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    //_getImage();
+    super.initState();
+  }
+/*
+  _getImage() async {
+
+    url = await FirebaseStorage.instance.ref().child("images").child("00o1deOAKLfAnHZW0BDgPYvis182.*").getDownloadURL().toString();
+    if( url!=null) {
+      image = Image.network(
+        url,
+        width: 400,
+        height: 240,
+        fit: BoxFit.fill,
+      );
+    }else{
+      image = Image.asset(
+        'images/liguey.png',
+        width: 400,
+        height: 240,
+        fit: BoxFit.fill,
+      );
+    }
+  }
+
+  */
 
   @override
   Widget build(BuildContext context) {
 
     final Map arguments = ModalRoute.of(context)!.settings.arguments as Map;
+    uid = arguments['id'];
     name = arguments['name'];
     email = arguments['email'];
     phone = arguments['phone'];
@@ -21,6 +53,22 @@ class _DetailsState extends State<Details> {
     distance = arguments['distance'];
     annonceText = arguments['annonceText'];
     descMessage = arguments['descMessage'];
+
+    Widget imageSection = Container(
+      padding: EdgeInsets.all(8),
+      color: Color(0xFFC78327),
+
+      child: FutureBuilder(
+          future: _getimage(context, uid),
+          builder: (context, snapshot){
+            return Container(
+              width: 400,
+              height: 240,
+              child: image
+            );
+          }
+      ),
+    );
 
     Widget titleSection = Container(
       padding: const EdgeInsets.all(32),
@@ -62,9 +110,9 @@ class _DetailsState extends State<Details> {
     Widget buttonSection = Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildButtonColumn(color, Icons.call, 'CALL', onPressed: () {}),
+        _buildButtonColumn(color, Icons.call, 'CALL', onPressed: () {launch("tel:"+ phone);}),
         _buildButtonColumn(color, Icons.mail, 'EMAIL', onPressed: () {}),
-        _buildButtonColumn(color, Icons.location_pin, "Dist: "+distance+" km", onPressed: () {}),
+        _buildButtonColumn(color, Icons.location_pin, "Dist: "+distance+" km", onPressed: () {launch("tel:"+ phone);}),
       ],
     );
 
@@ -85,12 +133,7 @@ class _DetailsState extends State<Details> {
         ),
         body: ListView(
           children: [
-            Image.asset(
-              'images/liguey.png',
-              width: 400,
-              height: 240,
-              fit: BoxFit.fill,
-            ),
+            imageSection,
             titleSection,
             buttonSection,
             textSection,
@@ -119,5 +162,28 @@ class _DetailsState extends State<Details> {
         ),
       ],
     );
+  }
+//https://bleyldev.medium.com/how-to-show-photos-from-firestore-in-flutter-6adc1c0e405e
+  Future<Widget> _getimage(BuildContext context, String imageName) async {
+    await FireStorageService.loadImage(context, imageName).then((value) {
+
+      if(value.startsWith("http")){
+        image = Image.network(value, fit: BoxFit.fill);
+      }else{
+        image = Image.asset('images/liguey.png', fit: BoxFit.fill);
+      }
+    });
+    return image;
+  }
+}
+
+class FireStorageService extends ChangeNotifier {
+  static Future<dynamic> loadImage(BuildContext context, String Image) async {
+    String url = await FirebaseStorage.instance.ref().child("images").child(Image).getDownloadURL();
+    if(url.toString().startsWith("http")){
+      return url;
+    }else{
+     return null;
+    }
   }
 }

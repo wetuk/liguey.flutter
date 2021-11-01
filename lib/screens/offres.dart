@@ -1,16 +1,19 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_liguey/models/user.dart';
 import 'package:flutter_liguey/screens/details.dart';
 import 'package:flutter_liguey/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:provider/provider.dart';
-import 'package:location/location.dart';
-import 'dart:async';
-import 'package:geocoder/geocoder.dart';
 import 'package:intl/intl.dart';
+
+//https://github.com/theandroidclassroom/flutter_realtime_database/blob/master/lib/screens/contacts.dart
 
 class Offres extends StatefulWidget {
 
@@ -19,158 +22,175 @@ class Offres extends StatefulWidget {
 }
 
 class _OffresState extends State<Offres> {
-  String _address = "";
-  String _dateTime="";
-  Location location = Location();
-  LocationData _currentPosition = null as LocationData;
-
+  var image;
   late UserModel annonce;
   late DatabaseReference Ref;
   late double lat=0;
   late double lng=0;
+  String day = "";
+  var categories = [""];
+  DatabaseReference dbRef = FirebaseDatabase.instance.reference();
+  String _value = 'one';
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getLoc();
   }
-
-  String day = "";
 
   @override
   Widget build(BuildContext context) {
 
     final Map arguments = ModalRoute.of(context)!.settings.arguments as Map;
-    final dbRef = FirebaseDatabase.instance.reference().child(arguments['category']);
+    lat = arguments['lat'];
+    lng = arguments['lng'];
 
     final user = context.watch<User>();
-    var currentSelectedValue;
-    const categories = ["Vente", "Menage", "Cuisine"];
 
     return MaterialApp(
       title: 'Liguey',
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Liguey'),
-          backgroundColor: Color(0xFFE0BF92)
-        ),
-        body: ListView(
-          children: [
-            Container(
-              alignment: Alignment.center,
-              color: Color(0xFFE0BF92),
-              padding: EdgeInsets.all(8),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  hint: Text("Selectionner une catégorie"),
-                  value: currentSelectedValue,
-                  isDense: true,
-                  onChanged: (newValue) {
-                    setState(() {
-                      currentSelectedValue = newValue;
-                    });
-                    print(currentSelectedValue);
-                  },
-                  items: categories.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+            title: new Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                new DropdownButton<String>(
+                  value: _value,
+                  items: <DropdownMenuItem<String>>[
+                    new DropdownMenuItem(
+                      child: new Text('one'),
+                      value: 'one',
+                    ),
+                    new DropdownMenuItem(child: new Text('two'), value: 'two'),
+                  ],
                 ),
-              ),
+              ],
             ),
-            Container(
-              padding: EdgeInsets.all(8),
-              color: Color(0xFF766651),
-              child: StreamBuilder(
-                stream: dbRef.onValue,
-                builder: (context, AsyncSnapshot<Event> snapshot) {
+            backgroundColor: Color(0xFFE0BF92)
+        ),
+        body:Column(
+          children: <Widget>[
+            new Expanded( // added Expanded widget
+              child: ListView(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    color: Color(0xFF766651),
+                    child: FutureBuilder(
+                      future: dbRef.child(arguments['category']).once(),
+                      builder: (context, snapshot) {
 
-                  List Offres = [];
-                  List lastOffres = [];
-                  if (snapshot.hasData && !snapshot.hasError) {
-                    Offres.clear();
-                    DataSnapshot dataValues = snapshot.data!.snapshot;
-                    Map<dynamic, dynamic> offres = dataValues.value;
-                    offres.forEach((key, values) {
-                      if(values["annonceTime"]!=null) {
-                        Offres.add(values);
-                      }
-                    });
-                    Offres.sort((a, b) {
-                      return b["annonceTime"].compareTo(a["annonceTime"]);
-                    });
-                    for(var i =0; i<5; i++) {
-                      lastOffres.add(Offres[i]);
-                    };
-                    return new ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: Offres.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Card(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              ListTile(
-                                  onTap: () {
-                                    if (user != null) {
-                                      double dist = Geolocator.distanceBetween(lat, lng, Offres[index]["lat"], Offres[index]["lng"])/1000;
+                        List Offres = [];
+                        //List lastOffres = [];
+                        if (snapshot.hasData && !snapshot.hasError) {
+                          Offres.clear();
+                          DataSnapshot? dataValues = snapshot.data as DataSnapshot?;
+                          Map<dynamic, dynamic> offres = dataValues!.value;
+                          offres.forEach((key, values) {
+                            if(values["annonceTime"]!=null) {
+                              Offres.add(values);
+                            }
+                          });
+                          Offres.sort((a, b) {
+                            return b["annonceTime"].compareTo(a["annonceTime"]);
+                          });
+                          for(var i =0; i<5; i++) {
+                            //lastOffres.add(Offres[i]);
+                          };
+                          return new ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: Offres.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Card(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    ListTile(
+                                        onTap: () {
+                                          if (user != null) {
+                                            double dist = Geolocator.distanceBetween(lat, lng, Offres[index]["lat"], Offres[index]["lng"])/1000;
 
-                                      String distance =(dist.round()).toString();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Details(),
-                                          settings: RouteSettings(
+                                            String distance =(dist.round()).toString();
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => Details(),
+                                                settings: RouteSettings(
 
-                                            arguments: {
-                                              'id': Offres[index]["id"],
-                                              'name': Offres[index]["name"],
-                                              'email': Offres[index]["email"],
-                                              'phone': Offres[index]["phone"],
-                                              'day': Offres[index]["day"],
-                                              'distance': distance,
-                                              'annonceText': Offres[index]["annonceText"],
-                                              'descMessage': Offres[index]["descMessage"],
-                                              'annonceLink': Offres[index]["annonceLink"],
-                                              'r_mail': Offres[index]["r_mail"],
-                                              'r_phone': Offres[index]["r_phone"],
-                                              'rate': Offres[index]["rate"],
-                                              'sector': Offres[index]["sector"],
-                                            },
-                                          ),
+                                                  arguments: {
+                                                    'id': Offres[index]["id"],
+                                                    'name': Offres[index]["name"],
+                                                    'email': Offres[index]["email"],
+                                                    'phone': Offres[index]["phone"],
+                                                    'day': Offres[index]["day"],
+                                                    'distance': distance,
+                                                    'annonceText': Offres[index]["annonceText"],
+                                                    'descMessage': Offres[index]["descMessage"],
+                                                    'annonceLink': Offres[index]["annonceLink"],
+                                                    'r_mail': Offres[index]["r_mail"],
+                                                    'r_phone': Offres[index]["r_phone"],
+                                                    'rate': Offres[index]["rate"],
+                                                    'sector': Offres[index]["sector"],
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => Login(),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                                        leading: CircleAvatar(backgroundImage: AssetImage("images/liguey.png")),
+                                        /*leading: FutureBuilder(
+                                            future: _getimage(context, Offres[index]["id"]),
+                                            builder: (context, snapshot){
+                                              if(snapshot.connectionState == ConnectionState.done){
+                                                return Container(
+                                                  width: 50,
+                                                  height: 50,
+                                                  child: CircleAvatar(backgroundImage: image),
+                                                );
+                                              }
+
+                                              if(snapshot.connectionState == ConnectionState.waiting){
+                                                return Container(
+                                                  width: MediaQuery.of(context).size.width / 1.2,
+                                                  height: MediaQuery.of(context).size.width / 1.2,
+                                                  child: CircularProgressIndicator(),
+                                                );
+                                              }
+
+                                              return Container();
+                                            }
+                                        ),*/
+                                        title: Text(Offres[index]["name"],
+                                            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                                        subtitle: Column(
+                                          children: <Widget>[
+                                            Text(Offres[index]["annonceText"], style: TextStyle(color: Colors.brown)),
+                                            Text(DateFormat('dd/MM/yyyy (HH:mm)').format(new DateTime.fromMillisecondsSinceEpoch(Offres[index]["annonceTime"])), style: TextStyle(color: Colors.brown, fontSize: 10.0)),
+                                          ],
                                         ),
-                                      );
-                                    } else {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Login(),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                                  leading: CircleAvatar(backgroundImage: AssetImage("images/liguey.png")),
-                                  title: Text(Offres[index]["name"],
-                                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                                  subtitle: Column(
-                                    children: <Widget>[
-                                      Text(Offres[index]["annonceText"], style: TextStyle(color: Colors.brown)),
-                                      Text(DateFormat('dd/MM/yyyy (HH:mm)').format(new DateTime.fromMillisecondsSinceEpoch(Offres[index]["annonceTime"])), style: TextStyle(color: Colors.brown, fontSize: 10.0)),
-                                    ],
-                                  ),
-                                  trailing: Icon(Icons.keyboard_arrow_right, color: Colors.black26, size: 30.0))
-                            ],
-                          ),
+                                        trailing: Icon(Icons.keyboard_arrow_right, color: Colors.black26, size: 30.0))
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        }
+                        return Container(
+                            child: Text(arguments['category'] + "s")
                         );
                       },
-                    );
-                  }
-                  return Container(child: Text("Les offres"));
-                },
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -179,58 +199,23 @@ class _OffresState extends State<Offres> {
     );
   }
 
-  getLoc() async{
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
+//https://bleyldev.medium.com/how-to-show-photos-from-firestore-in-flutter-6adc1c0e405e
+  Future<Widget> _getimage(BuildContext context, String imageName) async {
+    await FireStorageService.loadImage(context, imageName).then((value) {
 
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
-        return;
+      if(value != null){
+        image = NetworkImage(value.toString());
+      }else{
+        image = AssetImage('images/liguey.png');
       }
-    }
-
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return;
-      }
-    }
-
-    _currentPosition = await location.getLocation();
-
-    location.onLocationChanged.listen((LocationData currentLocation) {
-      //print("${currentLocation.longitude} : ${currentLocation.longitude}");
-      setState(() {
-        _currentPosition = currentLocation;
-        double? lat = _currentPosition.latitude;
-        double? lng = _currentPosition.longitude;
-
-        DateTime now = DateTime.now();
-        _dateTime = DateFormat('EEE d MMM kk:mm:ss ').format(now);
-        _getAddress(lat!,lng!)
-            .then((value) {
-          setState(() {
-            _address = "${value.first.addressLine}";
-          });
-        });
-      });
     });
+    return image;
   }
+}
 
-  Future<List<Address>> _getAddress(double lat, double lng) async {
-    final coordinates = new Coordinates(lat, lng);
-    List<Address> add =
-    await Geocoder.local.findAddressesFromCoordinates(coordinates);
-    return add;
+class FireStorageService extends ChangeNotifier {
+  FireStorageService();
+  static Future<dynamic> loadImage(BuildContext context, String Image) async {
+    return await FirebaseStorage.instance.ref().child("images").child(Image).getDownloadURL();
   }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(StringProperty('_address', _address));
-  }
-
 }
