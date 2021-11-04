@@ -10,7 +10,7 @@ class AuthService {
   final databaseRef = FirebaseDatabase.instance.reference();
   final Future<FirebaseApp> _future = Firebase.initializeApp();
 
-  Stream<User ?> get authStateChanges => _auth.idTokenChanges();
+  Stream<User?> get authStateChanges => _auth.idTokenChanges();
 
   Future<String?> login(String email, String password) async {
     try{
@@ -38,5 +38,36 @@ class AuthService {
   }
 
   void _success() async {
+  }
+
+  Future<String?> send(
+    String name, int end, String annonceLink, String annonceText, String annonceType,
+    String date, String description, String email, String id, double lat, double lng, String phone, String r_mail,
+    String r_phone, double rate, String sector) async {
+    int time = new DateTime.now().millisecondsSinceEpoch;
+
+    try{
+      await databaseRef.child("Test").push().set({
+        "name": name,
+        "annonceEnd": end,
+        "annonceLink": annonceLink,
+        "annonceOrder": -time,
+        "annonceText": annonceText,
+        "annonceTime": time,
+        "annonceType": annonceType,
+        "day": date,
+        "descMessage": description,
+        "email": email,
+        "id": id,
+        "lat": lat,
+        "lng": lng,
+        "phone": phone,
+        "r_mail": r_mail,
+        "r_phone": r_phone,
+        "rate": rate,
+        "sector": sector,
+      }).whenComplete(() =>  _success());
+      return "Sent";
+    } catch(e) {}
   }
 }

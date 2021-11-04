@@ -3,6 +3,7 @@ import 'package:flutter_liguey/main.dart';
 import 'package:flutter_liguey/screens/register.dart';
 import 'package:flutter_liguey/services/auth_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_liguey/translations.dart';
 import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
@@ -14,7 +15,6 @@ class _LoginState extends State<Login> {
   TextEditingController emailController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
 
-
   void _register(BuildContext context) async {
     await Navigator.push(context,
       MaterialPageRoute(builder: (context) => Register()),
@@ -23,7 +23,7 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<User>();
+    final user = context.watch<User?>();
 
     if (user != null) {
       return MyApp();
@@ -38,7 +38,7 @@ class _LoginState extends State<Login> {
               TextButton.icon(
                   icon: Icon(Icons.person, color: Colors.black),
                   label: Text(
-                    "S'inscrire", style: TextStyle(color: Colors.black),
+                    Translations.of(context, 'inscription'), style: TextStyle(color: Colors.black),
                   ),
                   onPressed: () {
                     _register(context);
@@ -69,8 +69,8 @@ class _LoginState extends State<Login> {
                     controller: emailController,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Email',
-                        hintText: 'Enter your email'),
+                        labelText: Translations.of(context, 'email'),
+                        hintText: Translations.of(context, 'email')),
                     textInputAction: TextInputAction.next,
                   ),
                 ),
@@ -83,8 +83,9 @@ class _LoginState extends State<Login> {
                     obscureText: true,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Password',
-                        hintText: 'Enter you password'),
+                        labelText: Translations.of(context, 'password'),
+                        hintText: Translations.of(context, 'password')
+                    ),
                     textInputAction: TextInputAction.done, // Hides the keyboard.
                   ),
                 ),
@@ -93,7 +94,7 @@ class _LoginState extends State<Login> {
                     //TODO FORGOT PASSWORD SCREEN GOES HERE
                   },
                   child: Text(
-                    'Forgot Password',
+                    Translations.of(context, 'forgot'),
                     style: TextStyle(color: Colors.blue, fontSize: 15),
                   ),
                 ),
@@ -108,10 +109,8 @@ class _LoginState extends State<Login> {
                       final String password = passwordController.text.trim();
 
                       if (email.isEmpty) {
-                      print("Email is Empty");
                       } else {
                         if (password.isEmpty) {
-                          print("Password is Empty");
                         } else {
                           context.read<AuthService>().login(
                             email,
@@ -121,7 +120,7 @@ class _LoginState extends State<Login> {
                       }
                     },
                     child: Text(
-                      'Login',
+                      Translations.of(context, 'connexion'),
                       style: TextStyle(color: Colors.white, fontSize: 25),
                     ),
                   ),
@@ -134,7 +133,7 @@ class _LoginState extends State<Login> {
                     _register(context);
                   },
                   child: Text(
-                    'New User? Create Account',
+                    Translations.of(context, 'newuser'),
                     style: TextStyle(color: Colors.red, fontSize: 15),
                   ),
                 ),

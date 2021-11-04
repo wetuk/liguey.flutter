@@ -28,24 +28,37 @@ class _OffresState extends State<Offres> {
   late double lat=0;
   late double lng=0;
   String day = "";
-  var categories = [""];
+  String sector = "";
   DatabaseReference dbRef = FirebaseDatabase.instance.reference();
-  String _value = 'one';
+  String dropdownValue = '';
+  List<String> sectorlist = [];
+  String category = '';
 
   @override
   void initState() {
     // TODO: implement initState
+
     super.initState();
+
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final Map arguments = ModalRoute.of(context)!.settings.arguments as Map;
+    sectorlist = arguments['sectors'].split(',');
+    dropdownValue = sectorlist[0];
+    lat = arguments['lat'];
+    lng = arguments['lng'];
+    category = arguments['category'];
+    print(sectorlist);
   }
 
   @override
   Widget build(BuildContext context) {
 
-    final Map arguments = ModalRoute.of(context)!.settings.arguments as Map;
-    lat = arguments['lat'];
-    lng = arguments['lng'];
-
-    final user = context.watch<User>();
+    final user = context.watch<User?>();
 
     return MaterialApp(
       title: 'Liguey',
@@ -54,15 +67,31 @@ class _OffresState extends State<Offres> {
             title: new Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                new DropdownButton<String>(
-                  value: _value,
-                  items: <DropdownMenuItem<String>>[
-                    new DropdownMenuItem(
-                      child: new Text('one'),
-                      value: 'one',
+                Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: DropdownButton<String>(
+                    value: dropdownValue,
+                    icon: const Icon(Icons.arrow_downward),
+                    iconSize: 24,
+                    elevation: 16,
+                    style: const TextStyle(color: Colors.deepPurple),
+                    underline: Container(
+                      height: 2,
+                      color: Colors.deepPurpleAccent,
                     ),
-                    new DropdownMenuItem(child: new Text('two'), value: 'two'),
-                  ],
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        dropdownValue = newValue!;
+                        sector = sectorlist.indexOf(dropdownValue).toString();
+                      });
+                    },
+                    items: sectorlist.map((String value) {
+                      return DropdownMenuItem(
+                        value: value,
+                        child: new Text(value),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ],
             ),
@@ -77,26 +106,29 @@ class _OffresState extends State<Offres> {
                     padding: EdgeInsets.all(8),
                     color: Color(0xFF766651),
                     child: FutureBuilder(
-                      future: dbRef.child(arguments['category']).once(),
+                      future: dbRef.child(category).once(),
                       builder: (context, snapshot) {
 
                         List Offres = [];
-                        //List lastOffres = [];
                         if (snapshot.hasData && !snapshot.hasError) {
                           Offres.clear();
-                          DataSnapshot? dataValues = snapshot.data as DataSnapshot?;
-                          Map<dynamic, dynamic> offres = dataValues!.value;
+                          DataSnapshot dataValues = snapshot.data as DataSnapshot;
+                          Map<dynamic, dynamic> offres = dataValues.value;
                           offres.forEach((key, values) {
                             if(values["annonceTime"]!=null) {
-                              Offres.add(values);
+                              if(sector == "") {
+                                Offres.add(values);
+                              }else{
+                                if(sector == values["sector"]) {
+                                  Offres.add(values);
+                                }
+                              }
                             }
                           });
                           Offres.sort((a, b) {
                             return b["annonceTime"].compareTo(a["annonceTime"]);
                           });
-                          for(var i =0; i<5; i++) {
-                            //lastOffres.add(Offres[i]);
-                          };
+
                           return new ListView.builder(
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
@@ -147,28 +179,6 @@ class _OffresState extends State<Offres> {
                                         },
                                         contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
                                         leading: CircleAvatar(backgroundImage: AssetImage("images/liguey.png")),
-                                        /*leading: FutureBuilder(
-                                            future: _getimage(context, Offres[index]["id"]),
-                                            builder: (context, snapshot){
-                                              if(snapshot.connectionState == ConnectionState.done){
-                                                return Container(
-                                                  width: 50,
-                                                  height: 50,
-                                                  child: CircleAvatar(backgroundImage: image),
-                                                );
-                                              }
-
-                                              if(snapshot.connectionState == ConnectionState.waiting){
-                                                return Container(
-                                                  width: MediaQuery.of(context).size.width / 1.2,
-                                                  height: MediaQuery.of(context).size.width / 1.2,
-                                                  child: CircularProgressIndicator(),
-                                                );
-                                              }
-
-                                              return Container();
-                                            }
-                                        ),*/
                                         title: Text(Offres[index]["name"],
                                             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                                         subtitle: Column(
@@ -185,7 +195,7 @@ class _OffresState extends State<Offres> {
                           );
                         }
                         return Container(
-                            child: Text(arguments['category'] + "s")
+                            child: Text(category + "s")
                         );
                       },
                     ),

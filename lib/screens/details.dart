@@ -11,6 +11,8 @@ class Details extends StatefulWidget {
 class _DetailsState extends State<Details> {
 
   var name, annonceText, descMessage, email, phone, rate, distance, image, uid, url, Aimage;
+  bool r_mail = true;
+  bool r_phone = true;
 
   @override
   void initState() {
@@ -53,6 +55,12 @@ class _DetailsState extends State<Details> {
     distance = arguments['distance'];
     annonceText = arguments['annonceText'];
     descMessage = arguments['descMessage'];
+    if(arguments['r_mail']! == "NO"){
+      r_mail = false;
+    }
+    if(arguments['r_phone']! == "NO"){
+      r_phone = false;
+    }
 
     Widget imageSection = Container(
       padding: EdgeInsets.all(8),
@@ -110,9 +118,9 @@ class _DetailsState extends State<Details> {
     Widget buttonSection = Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildButtonColumn(color, Icons.call, 'CALL', onPressed: () {launch("tel:"+ phone);}),
-        _buildButtonColumn(color, Icons.mail, 'EMAIL', onPressed: () {}),
-        _buildButtonColumn(color, Icons.location_pin, "Dist: "+distance+" km", onPressed: () {launch("tel:"+ phone);}),
+        _buildButtonColumn(r_phone, color, Icons.call, 'CALL'),
+        _buildButtonColumn(r_mail,color, Icons.mail, 'EMAIL'),
+        _buildButtonColumn(true, color, Icons.location_pin, "Dist: "+distance+" km"),
       ],
     );
 
@@ -143,24 +151,40 @@ class _DetailsState extends State<Details> {
     );
   }
 
-  Column _buildButtonColumn(Color color, IconData icon, String label, {Null Function()? onPressed}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: color),
-        Container(
-          margin: const EdgeInsets.only(top: 8),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              color: color,
+  Widget _buildButtonColumn(bool visible, Color color, IconData icon, String label) {
+    return GestureDetector(
+      onTap: (){
+        if(label == "CALL"){
+          launch("tel:"+ phone);
+        }else if (label == "EMAIL"){
+          launch("mailto:"+ email +",wetuk.sa@gmail.com");
+        }
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+
+        children: [
+          Visibility(
+            child:Icon(icon, color: color),
+            visible: visible,
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            child: Visibility(
+              visible: visible,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: color,
+                ),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 //https://bleyldev.medium.com/how-to-show-photos-from-firestore-in-flutter-6adc1c0e405e

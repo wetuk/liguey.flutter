@@ -4,6 +4,7 @@ import 'package:flutter_liguey/main.dart';
 import 'package:flutter_liguey/screens/login.dart';
 import 'package:flutter_liguey/services/auth_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_liguey/translations.dart';
 import 'package:provider/provider.dart';
 
 class Register extends StatefulWidget {
@@ -54,7 +55,7 @@ class _RegisterState extends State<Register> {
                       left: 15.0, right: 15.0, top: 5.0, bottom: 0),
                   child: Center(
                     child: Text(
-                      "Bienvenue sur LIGUEY,\n\ninscrivez-vous pour accéder aux annonces",
+                      Translations.of(context, 'welcome'),
                       style: TextStyle(
                         color: Colors.grey[500],
                       ),
@@ -70,8 +71,8 @@ class _RegisterState extends State<Register> {
                     controller: emailController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Email',
-                      hintText: "EMAIL...",
+                      labelText: Translations.of(context, 'email'),
+                      hintText: Translations.of(context, 'email'),
                     ),
                     textInputAction: TextInputAction.next,
                   ),
@@ -84,8 +85,8 @@ class _RegisterState extends State<Register> {
                     controller: passwordController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Password',
-                      hintText: "MOT DE PASSE...",
+                      labelText: Translations.of(context, 'password'),
+                      hintText: Translations.of(context, 'password'),
                     ),
                     textInputAction: TextInputAction.next,
                   ),
@@ -98,8 +99,8 @@ class _RegisterState extends State<Register> {
                     controller: nameController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Name',
-                      hintText: "NOM...",
+                      labelText: Translations.of(context, 'name'),
+                      hintText: Translations.of(context, 'name'),
                     ),
                     textInputAction: TextInputAction.next,
                   ),
@@ -112,8 +113,8 @@ class _RegisterState extends State<Register> {
                     controller: surnameController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Surname',
-                      hintText: "PRENOM...",
+                      labelText: Translations.of(context, 'surname'),
+                      hintText: Translations.of(context, 'surname'),
                     ),
                     textInputAction: TextInputAction.next,
                   ),
@@ -126,8 +127,8 @@ class _RegisterState extends State<Register> {
                     controller: phoneController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Phone',
-                      hintText: "TELEPHONE...",
+                      labelText: Translations.of(context, 'phone'),
+                      hintText: Translations.of(context, 'phone'),
                     ),
                     textInputAction: TextInputAction.done, // Hides the keyboard.
                     keyboardType: TextInputType.number,
@@ -149,19 +150,14 @@ class _RegisterState extends State<Register> {
                       final DateTime date = new DateTime.now();
 
                       if (email.isEmpty) {
-                        print("Email is Empty");
                       } else {
                         if (password.isEmpty) {
-                          print("Password is Empty");
                         } else {
                           if (name.isEmpty) {
-                            print("Name is Empty");
                           } else {
                             if (surname.isEmpty) {
-                              print("Surname is Empty");
                             } else {
                               if (phone.isEmpty) {
-                                print("Phone is Empty");
                               } else {
                                 context.read<AuthService>().register(
                                   email,
@@ -178,7 +174,7 @@ class _RegisterState extends State<Register> {
                         }
                       }
                     },
-                    child: Text("S'inscrire"),
+                    child: Text(Translations.of(context, 'inscription')),
                   ),
                 )
               ],

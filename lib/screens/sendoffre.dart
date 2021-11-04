@@ -2,7 +2,10 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_liguey/main.dart';
 import 'package:flutter_liguey/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_liguey/services/auth_services.dart';
+import 'package:flutter_liguey/translations.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/src/provider.dart';
 
 //https://github.com/theandroidclassroom/flutter_realtime_database/blob/master/lib/screens/contacts.dart
 
@@ -15,9 +18,9 @@ class SendOffres extends StatefulWidget {
 class _SendOffresState extends State<SendOffres> {
 
   DateTime annonceEnd = DateTime.now();
+  int end = 0;
   String annonceLink="Nolink";
   String annonceText = "";
-  late DateTime annonceTime;
   String annonceOrder = "";
   String annonceType = "";
   String descMessage = "";
@@ -45,9 +48,9 @@ class _SendOffresState extends State<SendOffres> {
   String endday = "";
   String TLieu = "";
   String TNombre = "";
+  String date = "";
 
   late UserModel annonce;
-  var categories = [""];
   late DatabaseReference dbRef;
   TextEditingController nController = new TextEditingController();
   TextEditingController rController = new TextEditingController();
@@ -55,8 +58,13 @@ class _SendOffresState extends State<SendOffres> {
   TextEditingController lController = new TextEditingController();
   TextEditingController eController = new TextEditingController();
   TextEditingController lkController = new TextEditingController();
+  TextEditingController endController = new TextEditingController();
+
   bool pvalue = true;
   bool evalue = true;
+  String dropdownValue = '';
+  List<String> sectorlist = [];
+  String category = '';
 
   @override
   void initState() {
@@ -64,6 +72,25 @@ class _SendOffresState extends State<SendOffres> {
     super.initState();
     dbRef = FirebaseDatabase.instance.reference();
     Langue = Intl.systemLocale;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final Map arguments = ModalRoute.of(context)!.settings.arguments as Map;
+    sectorlist = arguments['sectors'].split(',');
+    dropdownValue = sectorlist[0];
+    lat = arguments['lat'];
+    lng = arguments['lng'];
+    category = arguments['category'];
+    id = arguments['id'];
+    name = arguments['name'];
+    email = arguments['email'];
+    phone = arguments['phone'];
+    lat = arguments['lat'];
+    lng = arguments['lng'];
+    annonceType = arguments['type'];
   }
 
   void _success(BuildContext context) async {
@@ -77,44 +104,14 @@ class _SendOffresState extends State<SendOffres> {
   @override
   Widget build(BuildContext context) {
 
-    final Map arguments = ModalRoute.of(context)!.settings.arguments as Map;
-    id = arguments['id'];
-    name = arguments['name'];
-    email = arguments['email'];
-    phone = arguments['phone'];
-    lat = arguments['lat'];
-    lng = arguments['lng'];
-    annonceType = arguments['type'];
-
-    if(Langue != "fr"){
-      publier = "Publier";
-      phoneyesno = "Afficher mon téléphone ?";
-      emailyesno = "Afficher mon email ?";
-      nombre = "Nombre de places";
-      profil = "Résumé (exp: Je cherche 2 vendeurs)";
-      message = "La mission en quelques mots";
-      lieu  = "Le lieu de l'emploi";
-      endday = "Date limite de candidature";
-      linktext = "Mettez ici un lien https si nécessaire";
-      TLieu = "Lieu : ";
-      TNombre = "Nombre : ";
-    } else {
-      publier = "Publish";
-      phoneyesno = "Show my phone ?";
-      emailyesno = "Show my email ?";
-      nombre = "Number of posts";
-      profil = "Summary (e.g.: I'm looking for 2 sellers)";
-      message = "A description message for the job";
-      lieu = "The location of the job";
-      endday = "Application deadline";
-      linktext = "Put a https link here if necessary";
-      TLieu = "Location : ";
-      TNombre = "Number : ";
-    }
-
-    if(annonceType == "Test"){
+    if(annonceType == "Offre"){
       _enabled = true;
-      link = linktext;
+      link = Translations.of(context, 'linktext');
+      profil = Translations.of(context, 'profiljob');
+      message = Translations.of(context, 'messagejob');
+    }else{
+      profil = Translations.of(context, 'profiljobber');
+      message = Translations.of(context, 'messagejobber');
     }
 
     Future pickDate(BuildContext context) async {
@@ -127,7 +124,11 @@ class _SendOffresState extends State<SendOffres> {
 
       if (newDate == null) return;
 
-      setState(() => annonceEnd = newDate);
+      setState(() {
+        annonceEnd = newDate;
+        end = newDate.millisecondsSinceEpoch;
+        endController.text = DateFormat('dd/MM/yyyy').format(annonceEnd);
+      });
     }
 
     return MaterialApp(
@@ -141,16 +142,29 @@ class _SendOffresState extends State<SendOffres> {
           child: Column(
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.only(
-                    left: 15.0, right: 15.0, top: 5.0, bottom: 0),
-                child: Center(
-                  child: Text(
-                    "Bienvenue sur LIGUEY,\n\ninscrivez-vous pour accéder aux annonces",
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                    ),
-                    textAlign: TextAlign.center,
+                padding: EdgeInsets.all(20.0),
+                child: DropdownButton<String>(
+                  value: dropdownValue,
+                  icon: const Icon(Icons.arrow_downward),
+                  iconSize: 24,
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.deepPurple),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.deepPurpleAccent,
                   ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValue = newValue!;
+                      sector = sectorlist.indexOf(dropdownValue).toString();
+                    });
+                  },
+                  items: sectorlist.map((String value) {
+                    return DropdownMenuItem(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
                 ),
               ),
               Padding(
@@ -159,12 +173,15 @@ class _SendOffresState extends State<SendOffres> {
                 //padding: EdgeInsets.symmetric(horizontal: 15),
                 child: TextField(
                   controller: rController,
+                  keyboardType: TextInputType.multiline,
+                  minLines: null,
+                  maxLines: null,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: profil,
                     hintText: profil,
                   ),
-                  textInputAction: TextInputAction.next,
+                  //textInputAction: TextInputAction.next,
                 ),
               ),
               Padding(
@@ -173,12 +190,15 @@ class _SendOffresState extends State<SendOffres> {
                 //padding: EdgeInsets.symmetric(horizontal: 15),
                 child: TextField(
                   controller: dController,
+                  keyboardType: TextInputType.multiline,
+                  minLines: null,
+                  maxLines: null,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: message,
                     hintText: message,
                   ),
-                  textInputAction: TextInputAction.next,
+                  //textInputAction: TextInputAction.next,
                 ),
               ),
               Padding(
@@ -189,8 +209,8 @@ class _SendOffresState extends State<SendOffres> {
                   controller: lController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: lieu,
-                    hintText: lieu,
+                    labelText: Translations.of(context, 'lieu'),
+                    hintText: Translations.of(context, 'lieu'),
                   ),
                   textInputAction: TextInputAction.next,
                 ),
@@ -199,84 +219,102 @@ class _SendOffresState extends State<SendOffres> {
                 padding: const EdgeInsets.only(
                     left: 15.0, right: 15.0, top: 5.0, bottom: 0),
                 //padding: EdgeInsets.symmetric(horizontal: 15),
-                child: TextField(
-                  enabled:_enabled,
-                  controller: nController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: nombre,
-                    hintText: nombre,
+                child: Visibility(
+                  visible: _enabled,
+                  child: TextField(
+                    enabled:_enabled,
+                    controller: nController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: Translations.of(context, 'nombre'),
+                      hintText: Translations.of(context, 'nombre'),
+                    ),
+                    textInputAction: TextInputAction.done, // Hides the keyboard.
+                    keyboardType: TextInputType.number,
                   ),
-                  textInputAction: TextInputAction.done, // Hides the keyboard.
-                  keyboardType: TextInputType.number,
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.only(
                     left: 15.0, right: 15.0, top: 5.0, bottom: 5.0),
-                child: TextField(
-                  onTap: () {
-                    pickDate(context);
-                  },
-                  enabled:_enabled,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: endday,
-                    hintText: DateFormat('dd/MM/yyyy').format(annonceEnd),
+                child: Visibility(
+                  visible: _enabled,
+                  child: TextField(
+                    onTap: () {
+                      pickDate(context);
+                    },
+                    enabled:_enabled,
+                    controller: endController, //editing controller of this TextField
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: Translations.of(context, 'endday'),
+                      hintText: DateFormat('dd/MM/yyyy').format(annonceEnd),
+                    ),
+                    textInputAction: TextInputAction.next,
                   ),
-                  textInputAction: TextInputAction.next,
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.only(
                     left: 15.0, right: 15.0, top: 5.0, bottom: 0),
                 //padding: EdgeInsets.symmetric(horizontal: 15),
-                child: TextField(
-                  enabled:_enabled,
-                  controller: lkController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Link',
-                    hintText: link,
+                child: Visibility(
+                  visible: _enabled,
+                  child: TextField(
+                    enabled:_enabled,
+                    controller: lkController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Link',
+                      hintText: link,
+                    ),
+                    textInputAction: TextInputAction.next,
                   ),
-                  textInputAction: TextInputAction.next,
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.only(
                     left: 15.0, right: 15.0, top: 0, bottom: 0),
                 //padding: EdgeInsets.symmetric(horizontal: 15),
-                child: CheckboxListTile(
-                  title: Text(phoneyesno),
-                  value: pvalue,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      pvalue = value!;
-                      if(pvalue == true){
-                        r_phone = "NO";
-                      }
-                    });
-                  },
-                  secondary: const Icon(Icons.phone),
-                )
+                child: Visibility(
+                  visible: _enabled,
+                  child: CheckboxListTile(
+                    title: Text(Translations.of(context, 'phoneyesno')),
+                    value: pvalue,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        pvalue = value!;
+                        if(pvalue != true){
+                          r_phone = "NO";
+                        }else{
+                          r_phone = "YES";
+                        }
+                      });
+                    },
+                    secondary: const Icon(Icons.phone),
+                  ),
+                ),
               ),
               Padding(
-                  padding: const EdgeInsets.only(
-                      left: 15.0, right: 15.0, top: 0, bottom: 0),
-                  //padding: EdgeInsets.symmetric(horizontal: 15),
+                padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 0, bottom: 0),
+                child: Visibility(
+                  visible: _enabled,
                   child: CheckboxListTile(
-                    title: Text(emailyesno),
+                    title: Text(Translations.of(context, 'emailyesno')),
                     value: evalue,
                     onChanged: (bool? value) {
                       setState(() {
                         evalue = value!;
-                        if(evalue == true){
+                        if(evalue != true){
                           r_mail = "NO";
+                        }else{
+                          r_mail = "YES";
                         }
                       });
                     },
                     secondary: const Icon(Icons.email_outlined),
-                  )
+                  ),
+                ),
               ),
               Container(
                 height: 50,
@@ -297,51 +335,45 @@ class _SendOffresState extends State<SendOffres> {
                     }
 
                     if (title.isEmpty) {
-                      print("Password is Empty");
+                      print("Title is Empty");
                     } else {
                       if (description.isEmpty) {
-                        print("Name is Empty");
+                        print("Description is Empty");
                       } else {
                         if (location.isEmpty) {
-                          print("Surname is Empty");
+                          print("Location is Empty");
                         } else {
                             //Envoi vers Firebase
-                            annonceTime = new DateTime.now();
-
-                            if(annonceType == "Test") {
-                              annonceOrder = "-" + annonceTime.toString();
-                              annonceText = title + ".\n" + TLieu + location + "\n"+ TNombre + number;
+                            date = DateFormat('dd-MM-yyyy').format(new DateTime.now());
+                            if(annonceType == "Offre") {
+                              annonceText = title + ".\n" + Translations.of(context, 'TLieu') + location + "\n"+ Translations.of(context, 'TNombre') + number;
                             }else{
-                              annonceOrder = "O";
-                              annonceText = title + ".\n" + TLieu + location;
+                              annonceText = title + ".\n" + Translations.of(context, 'TLieu') + location;
                             }
 
-                            dbRef.child(annonceType).push().set({
-                              "name": name,
-                              "annonceEnd": annonceEnd,
-                              "annonceLink": annonceLink,
-                              "annonceOrder": annonceOrder,
-                              "annonceText": annonceText,
-                              "annonceTime": annonceTime,
-                              "annonceType": annonceType,
-                              "day": DateFormat('dd-MM-yyyy').format(new DateTime.now()),
-                              "descMessage": description,
-                              "email": email,
-                              "id": id,
-                              "lat": lat,
-                              "lng": lng,
-                              "phone": phone,
-                              "r_mail": r_mail,
-                              "r_phone": r_phone,
-                              "rate": rate,
-                              "sector": sector,
-                            }).whenComplete(() => _success(context));
-
+                            context.read<AuthService>().send(
+                             name,
+                             end,
+                             annonceLink,
+                             annonceText,
+                             annonceType,
+                             date,
+                             description,
+                             email,
+                             id,
+                             lat,
+                             lng,
+                             phone,
+                             r_mail,
+                             r_phone,
+                             rate,
+                             sector,
+                            ).whenComplete(() => _success(context));
                         }
                       }
                     }
                   },
-                  child: Text(publier,
+                  child: Text(Translations.of(context, 'publier'),
                   style: TextStyle(color: Colors.black, fontSize: 20),
                   ),
                 ),

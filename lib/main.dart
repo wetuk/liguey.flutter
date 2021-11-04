@@ -1,4 +1,3 @@
-import 'package:android_intent/android_intent.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -17,6 +16,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'translations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 //Integration Wordpress
 //https://ichi.pro/fr/comment-integrer-votre-application-flutter-dans-wordpress-225846033883803
@@ -46,6 +47,15 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: "APP",
+        localizationsDelegates: [
+          TranslationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: [
+          const Locale('en', ''),
+          const Locale('fr', ''),
+        ],
         home: MyLocation(),
       ),
     );
@@ -60,29 +70,13 @@ class MyLocation extends StatefulWidget {
 class _MyLocationState extends State<MyLocation> {
   late Future<List<FirebaseFile>> futureFiles;
 
-  String _address = "";
-  String _dateTime="";
-  Position? _currentPosition = null;
-
+  Position? _currentPosition;
   late UserModel annonce;
   late DatabaseReference Ref;
   late double lat=0;
   late double lng=0;
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    _getLoc();
-  }
-
-  Future <MyApp?> _signOut()  async{
-    await FirebaseAuth.instance.signOut();
-    return null;
-  }
-
-//  User? user = FirebaseAuth.instance.currentUser;
-//  String? Uid = FirebaseAuth.instance.currentUser!.uid;
+  String Category = "ENG";
+  String sectors = '';
 
   final dbRef = FirebaseDatabase.instance.reference();
 
@@ -94,22 +88,41 @@ class _MyLocationState extends State<MyLocation> {
   String phone = "";
 
   @override
+  void initState() {
+    // TODO: implement initState
+    _getLoc();
+    _getCategories().then((val){
+      sectors = val;
+    });
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
+  Future <MyApp?> _signOut()  async{
+    await FirebaseAuth.instance.signOut();
+    return null;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = context.watch<User>();
+    final user = context.watch<User?>();
     if (user != null) {
-      log = "Déconnexion";
+      log = Translations.of(context, 'deconnexion');
       id = user.uid;
-      name = user.displayName!;
       email = user.email!;
-      phone = user.phoneNumber!;
+      _getUser(id);
     }else{
-      log = "Connexion";
+      log = Translations.of(context, 'connexion');
     }
     return MaterialApp(
       title: 'Liguey',
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Liguey'),
+          title: Text("Liguey"),
           backgroundColor: Color(0xFFE0BF92),
           actions: <Widget> [
             TextButton.icon(
@@ -156,10 +169,38 @@ class _MyLocationState extends State<MyLocation> {
               decoration: BoxDecoration(color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
               child: TextButton(
                 onPressed: () {
-
+                  if (user != null) {
+                    if(lat != 0 && lng != 0) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SendOffres(),
+                          settings: RouteSettings(
+                            arguments: {
+                              'id': id,
+                              'name': name,
+                              'email': email,
+                              'phone': phone,
+                              'lat': lat,
+                              'lng': lng,
+                              'type': "Offre",
+                              'sectors': sectors,
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Login(),
+                      ),
+                    );
+                  }
                 },
                 child: Text(
-                  'Poster une annonce...',
+                  Translations.of(context, 'postjob'),
                   style: TextStyle(color: Colors.black, fontSize: 20),
                 ),
               ),
@@ -175,8 +216,8 @@ class _MyLocationState extends State<MyLocation> {
                   List lastOffres = [];
                   if (snapshot.hasData && !snapshot.hasError) {
                     Offres.clear();
-                    DataSnapshot? dataValues = snapshot.data as DataSnapshot?;
-                    Map<dynamic, dynamic> offres = dataValues!.value;
+                    DataSnapshot dataValues = snapshot.data as DataSnapshot;
+                    Map<dynamic, dynamic> offres = dataValues.value;
                     offres.forEach((key, values) {
                       if(values["annonceTime"]!=null) {
                         Offres.add(values);
@@ -271,7 +312,7 @@ class _MyLocationState extends State<MyLocation> {
                       },
                     );
                   }
-                  return Container(child: Text("Les offres"));
+                  return Container(child: Text(Translations.of(context, 'jobs')));
                 },
               ),
             ),
@@ -282,7 +323,7 @@ class _MyLocationState extends State<MyLocation> {
                 child: RichText(
                     text: TextSpan(children: [
                       TextSpan(
-                          text: "Voir plus d'offres...",
+                          text: Translations.of(context, 'alljobs'),
                           style: TextStyle(
                             color: Colors.blue,
                             fontSize: 20.0,
@@ -299,6 +340,7 @@ class _MyLocationState extends State<MyLocation> {
                                         'category': "Offre",
                                         'lat': lat,
                                         'lng': lng,
+                                        'sectors': sectors,
                                       },
                                     ),
                                   ),
@@ -318,8 +360,8 @@ class _MyLocationState extends State<MyLocation> {
                   List lastDemandes = [];
                   if (snapshot.hasData && !snapshot.hasError) {
                     Demandes.clear();
-                    DataSnapshot? dataValues = snapshot.data as DataSnapshot?;
-                    Map<dynamic, dynamic> demandes = dataValues!.value;
+                    DataSnapshot dataValues = snapshot.data as DataSnapshot;
+                    Map<dynamic, dynamic> demandes = dataValues.value;
                     demandes.forEach((key, values) {
                       if(values["annonceTime"]!=null) {
                         Demandes.add(values);
@@ -415,8 +457,7 @@ class _MyLocationState extends State<MyLocation> {
                       },
                     );
                   }
-                  return Container(child: Text("Les demandes"));
-
+                  return Container(child: Text(Translations.of(context, 'jobbers')));
                 },
               ),
             ),
@@ -427,7 +468,7 @@ class _MyLocationState extends State<MyLocation> {
                 child: RichText(
                     text: TextSpan(children: [
                       TextSpan(
-                          text: 'Voir plus de jobbers...',
+                          text: Translations.of(context, 'alljobbers'),
                           style: TextStyle(
                             color: Colors.blue,
                             fontSize: 20.0,
@@ -444,6 +485,7 @@ class _MyLocationState extends State<MyLocation> {
                                         'category': "Demande",
                                         'lat': lat,
                                         'lng': lng,
+                                        'sectors': sectors,
                                       },
                                     ),
                                   ),
@@ -474,7 +516,8 @@ class _MyLocationState extends State<MyLocation> {
                               'phone': phone,
                               'lat': lat,
                               'lng': lng,
-                              'type': "Test",
+                              'type': "Demande",
+                              'sectors': sectors,
                             },
                           ),
                         ),
@@ -490,7 +533,7 @@ class _MyLocationState extends State<MyLocation> {
                   }
                 },
                 child: Text(
-                  'Devenir JOBBER',
+                  Translations.of(context, 'postjobber'),
                   style: TextStyle(color: Colors.black, fontSize: 20),
                 ),
               ),
@@ -501,33 +544,29 @@ class _MyLocationState extends State<MyLocation> {
     );
   }
 
+  Future<String> _getCategories() async {
+    String result = (await dbRef.child("JobCategories").child(Category).once()).value;
+    return result;
+  }
+
+  Future<String> _getUser(String uid) async {
+
+    return dbRef.child("Users").child(uid).once().then((DataSnapshot snap) {
+      name = snap.value['userName'].toString();
+      phone = snap.value['userPhone'].toString();
+
+      return name;
+
+    });
+  }
+
   Future _getLoc() async {
     bool serviceEnabled;
     LocationPermission permission;
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      if (Theme.of(context).platform == TargetPlatform.android) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Can't get gurrent location"),
-              content:const Text('Please make sure you enable GPS and try again'),
-              actions: <Widget>[
-                TextButton(child: Text('Ok'),
-                  onPressed: () {
-                    final AndroidIntent intent = AndroidIntent(
-                        action: 'android.settings.LOCATION_SOURCE_SETTINGS');
-                    intent.launch();
-                    Navigator.of(context, rootNavigator: true).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
+
       return Future.error('Location services are disabled.');
     }
 
