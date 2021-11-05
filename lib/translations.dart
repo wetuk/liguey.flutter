@@ -41,6 +41,8 @@ class Translations {
       'linktext' : "Put a https link here if necessary",
       'TLieu' : "Location : ",
       'TNombre' : "Number : ",
+      'langue' : "ENG",
+      'picture' : "Take a picture",
     },
     'fr': {
       'welcome': "Bienvenue sur LIGUEY,\n\ninscrivez-vous pour accéder aux annonces",
@@ -72,7 +74,9 @@ class Translations {
       'endday' : "Date limite de candidature",
       'linktext' : "Mettez ici un lien https si nécessaire",
       'TLieu' : "Lieu : ",
-      'TNombre' : "Nombre : "
+      'TNombre' : "Nombre : ",
+      'langue' : "FR",
+      'picture' : "Ajouter une photo",
     }
   };
 

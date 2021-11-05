@@ -101,8 +101,7 @@ class _LoginState extends State<Login> {
                 Container(
                   height: 50,
                   width: 250,
-                  decoration: BoxDecoration(
-                      color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
+                  decoration: BoxDecoration(color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
                   child: TextButton(
                     onPressed: () {
                       final String email = emailController.text.trim();
@@ -121,7 +120,7 @@ class _LoginState extends State<Login> {
                     },
                     child: Text(
                       Translations.of(context, 'connexion'),
-                      style: TextStyle(color: Colors.white, fontSize: 25),
+                      style: TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ),
                 ),

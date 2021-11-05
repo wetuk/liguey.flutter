@@ -52,7 +52,6 @@ class _OffresState extends State<Offres> {
     lat = arguments['lat'];
     lng = arguments['lng'];
     category = arguments['category'];
-    print(sectorlist);
   }
 
   @override
@@ -194,9 +193,10 @@ class _OffresState extends State<Offres> {
                             },
                           );
                         }
-                        return Container(
-                            child: Text(category + "s")
+                        return Center(
+                          child: CircularProgressIndicator(),
                         );
+                        //return Container(child: Text(category + "s"));
                       },
                     ),
                   ),

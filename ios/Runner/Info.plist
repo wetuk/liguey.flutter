@@ -41,6 +41,16 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+    <string>Some Description</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Some Description</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Some Description</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Needed to access location</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Needed to access location</string>
 </dict>
 <key>LSApplicationQueriesSchemes</key>
 <array>
@@ -55,8 +65,4 @@
   <string>fastmail</string>
   <string>superhuman</string>
 </array>
-<key>NSLocationAlwaysUsageDescription</key>
-<string>Needed to access location</string>
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>Needed to access location</string>
 </plist>

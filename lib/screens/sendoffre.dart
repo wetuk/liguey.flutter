@@ -265,7 +265,7 @@ class _SendOffresState extends State<SendOffres> {
                     controller: lkController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Link',
+                      labelText: link,
                       hintText: link,
                     ),
                     textInputAction: TextInputAction.next,
@@ -374,10 +374,13 @@ class _SendOffresState extends State<SendOffres> {
                     }
                   },
                   child: Text(Translations.of(context, 'publier'),
-                  style: TextStyle(color: Colors.black, fontSize: 20),
+                  style: TextStyle(color: Colors.white, fontSize: 15),
                   ),
                 ),
-              )
+              ),
+              SizedBox(
+                height: 30,
+              ),
             ],
           ),
         ),

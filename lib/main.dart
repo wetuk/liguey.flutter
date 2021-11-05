@@ -4,8 +4,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_liguey/models/firebase_file.dart';
 import 'package:flutter_liguey/models/user.dart';
+import 'package:flutter_liguey/screens/picture.dart';
 import 'package:flutter_liguey/screens/details.dart';
 import 'package:flutter_liguey/screens/login.dart';
 import 'package:flutter_liguey/screens/offres.dart';
@@ -29,6 +29,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
@@ -68,16 +69,14 @@ class MyLocation extends StatefulWidget {
 }
 
 class _MyLocationState extends State<MyLocation> {
-  late Future<List<FirebaseFile>> futureFiles;
+  //late Future<List<FirebaseFile>> futureFiles;
 
   Position? _currentPosition;
   late UserModel annonce;
   late DatabaseReference Ref;
-  late double lat=0;
-  late double lng=0;
-  String Category = "ENG";
+  double lat=0;
+  double lng=0;
   String sectors = '';
-
   final dbRef = FirebaseDatabase.instance.reference();
 
   String log ="";
@@ -90,16 +89,17 @@ class _MyLocationState extends State<MyLocation> {
   @override
   void initState() {
     // TODO: implement initState
-    _getLoc();
-    _getCategories().then((val){
-      sectors = val;
-    });
+
     super.initState();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _getLoc();
+    _getCategories(Translations.of(context, 'langue')).then((val){
+      sectors = val;
+    });
   }
 
   Future <MyApp?> _signOut()  async{
@@ -144,408 +144,469 @@ class _MyLocationState extends State<MyLocation> {
             )
           ],
         ),
-        body: ListView(
-          children: <Widget>[
-            Container(
-              alignment: Alignment.center,
-              color: Color(0xFFE0BF92),
-              padding: EdgeInsets.all(8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8.0),
-                  topRight: Radius.circular(8.0),
-                ),
-                child: Image.asset(
-                  'images/welcome_liguey.jpg',
-                  width: 600,
-                  height: 300,
-                  //fit: BoxFit.cover,
+        body: SingleChildScrollView(
+          child : Column(
+            children: <Widget>[
+              Container(
+                alignment: Alignment.center,
+                color: Color(0xFFE0BF92),
+                padding: EdgeInsets.all(8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(8.0),
+                    topRight: Radius.circular(8.0),
+                  ),
+                  child: Image.asset(
+                    'images/welcome_liguey.jpg',
+                    //fit: BoxFit.cover,
+                  ),
                 ),
               ),
-            ),
-            Container(
-              height: 50,
-              width: 250,
-              decoration: BoxDecoration(color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
-              child: TextButton(
-                onPressed: () {
-                  if (user != null) {
-                    if(lat != 0 && lng != 0) {
+              SizedBox(
+                height: 30,
+              ),
+              Container(
+                height: 50,
+                width: 250,
+                decoration: BoxDecoration(color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
+                child: TextButton(
+                  onPressed: () {
+                    if (user != null) {
+                      if(lat != 0 && lng != 0) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SendOffres(),
+                            settings: RouteSettings(
+                              arguments: {
+                                'id': id,
+                                'name': name,
+                                'email': email,
+                                'phone': phone,
+                                'lat': lat,
+                                'lng': lng,
+                                'type': "Offre",
+                                'sectors': sectors,
+                              },
+                            ),
+                          ),
+                        );
+                      }
+                    } else {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => SendOffres(),
-                          settings: RouteSettings(
-                            arguments: {
-                              'id': id,
-                              'name': name,
-                              'email': email,
-                              'phone': phone,
-                              'lat': lat,
-                              'lng': lng,
-                              'type': "Offre",
-                              'sectors': sectors,
-                            },
-                          ),
+                          builder: (context) => Login(),
                         ),
                       );
                     }
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Login(),
-                      ),
-                    );
-                  }
-                },
-                child: Text(
-                  Translations.of(context, 'postjob'),
-                  style: TextStyle(color: Colors.black, fontSize: 20),
+                  },
+                  child: Text(
+                    Translations.of(context, 'postjob'),
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  ),
                 ),
               ),
-            ),
-            Container(
-              padding: EdgeInsets.all(8),
-              color: Color(0xFF766651),
-              child: FutureBuilder(
-                future: dbRef.child("Offre").once(),
-                builder: (context, snapshot) {
-
-                  List Offres = [];
-                  List lastOffres = [];
-                  if (snapshot.hasData && !snapshot.hasError) {
-                    Offres.clear();
-                    DataSnapshot dataValues = snapshot.data as DataSnapshot;
-                    Map<dynamic, dynamic> offres = dataValues.value;
-                    offres.forEach((key, values) {
-                      if(values["annonceTime"]!=null) {
-                        Offres.add(values);
-                      }
-                    });
-                    Offres.sort((a, b) {
-                      return b["annonceTime"].compareTo(a["annonceTime"]);
-                    });
-                    for(var i =0; i<5; i++) {
-                      lastOffres.add(Offres[i]);
-                    };
-                    var image;
-
-                    return new ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: lastOffres.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Card(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              ListTile(
-                                  onTap: () {
-                                    if (user != null) {
-                                      double dist = Geolocator.distanceBetween(lat, lng, lastOffres[index]["lat"], lastOffres[index]["lng"])/1000;
-
-                                      String distance =(dist.round()).toString();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Details(),
-                                          settings: RouteSettings(
-
-                                            arguments: {
-                                              'id': lastOffres[index]["id"],
-                                              'name': lastOffres[index]["name"],
-                                              'email': lastOffres[index]["email"],
-                                              'phone': lastOffres[index]["phone"],
-                                              'day': lastOffres[index]["day"],
-                                              'distance': distance,
-                                              'annonceText': lastOffres[index]["annonceText"],
-                                              'descMessage': lastOffres[index]["descMessage"],
-                                              'annonceLink': lastOffres[index]["annonceLink"],
-                                              'r_mail': lastOffres[index]["r_mail"],
-                                              'r_phone': lastOffres[index]["r_phone"],
-                                              'rate': lastOffres[index]["rate"],
-                                              'sector': lastOffres[index]["sector"],
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Login(),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                                  leading: FutureBuilder(
-                                      future: _getimage(context, lastOffres[index]["id"]),
-                                      builder: (context, snapshot){
-                                        if(!snapshot.data.toString().contains("http")){
-                                          return Container(
-                                            width: 50,
-                                            height: 50,
-                                            child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
-                                          );
-                                        }else{
-                                          return Container(
-                                            width: 50,
-                                            height: 50,
-                                            child: CircleAvatar(backgroundImage: NetworkImage(snapshot.data.toString())),
-                                          );
-                                        }
-                                      }
-                                  ),
-                                  title: Text(lastOffres[index]["name"], style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                                  subtitle: Column(
-                                    children: <Widget>[
-                                      Text(lastOffres[index]["annonceText"], style: TextStyle(color: Colors.brown)),
-                                      Text(DateFormat('dd/MM/yyyy (HH:mm)').format(new DateTime.fromMillisecondsSinceEpoch(lastOffres[index]["annonceTime"])), style: TextStyle(color: Colors.brown, fontSize: 10.0)),
-                                    ],
-                                  ),
-                                  trailing: Icon(Icons.keyboard_arrow_right, color: Colors.black26, size: 30.0))
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  }
-                  return Container(child: Text(Translations.of(context, 'jobs')));
-                },
+              SizedBox(
+                height: 30,
               ),
-            ),
-            Container(
+              Container(
                 padding: EdgeInsets.all(8),
                 color: Color(0xFF766651),
-                alignment: Alignment.center,
-                child: RichText(
-                    text: TextSpan(children: [
-                      TextSpan(
-                          text: Translations.of(context, 'alljobs'),
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 20.0,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              if(lat != 0 && lng != 0) {
-                                  Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Offres(),
-                                    settings: RouteSettings(
-                                      arguments: {
-                                        'category': "Offre",
-                                        'lat': lat,
-                                        'lng': lng,
-                                        'sectors': sectors,
-                                      },
-                                    ),
-                                  ),
-                                );
-                              }
-                            }),
-                    ]))
-            ),
-            Container(
-              padding: EdgeInsets.all(8),
-              color: Color(0xFFC78327),
-              child: FutureBuilder(
-                future: dbRef.child("Demande").once(),
-                builder: (context, snapshot) {
+                child: FutureBuilder(
+                  future: dbRef.child("Offre").once(),
+                  builder: (context, snapshot) {
 
-                  List Demandes = [];
-                  List lastDemandes = [];
-                  if (snapshot.hasData && !snapshot.hasError) {
-                    Demandes.clear();
-                    DataSnapshot dataValues = snapshot.data as DataSnapshot;
-                    Map<dynamic, dynamic> demandes = dataValues.value;
-                    demandes.forEach((key, values) {
-                      if(values["annonceTime"]!=null) {
-                        Demandes.add(values);
-                      }
-                    });
-                    Demandes.sort((a, b) {
-                      return b["annonceTime"].compareTo(a["annonceTime"]);
-                    });
-                    for(var i =0; i<5; i++) {
-                      lastDemandes.add(Demandes[i]);
-                    };
-                    return new ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: lastDemandes.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        var image;
+                    List Offres = [];
+                    List lastOffres = [];
+                    if (snapshot.hasData && !snapshot.hasError) {
+                      Offres.clear();
+                      DataSnapshot dataValues = snapshot.data as DataSnapshot;
+                      Map<dynamic, dynamic> offres = dataValues.value;
+                      offres.forEach((key, values) {
+                        if(values["annonceTime"]!=null) {
+                          Offres.add(values);
+                        }
+                      });
+                      Offres.sort((a, b) {
+                        return b["annonceTime"].compareTo(a["annonceTime"]);
+                      });
+                      for(var i =0; i<5; i++) {
+                        lastOffres.add(Offres[i]);
+                      };
+                      var image;
 
-                        return Card(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              ListTile(
-                                  onTap: () {
-                                    if (user != null) {
+                      return new ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: lastOffres.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Card(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                ListTile(
+                                    onTap: () {
+                                      if (user != null) {
+                                        double dist = Geolocator.distanceBetween(lat, lng, lastOffres[index]["lat"], lastOffres[index]["lng"])/1000;
 
-                                      double dist = Geolocator.distanceBetween(lat, lng, lastDemandes[index]["lat"], lastDemandes[index]["lng"])/1000;
-                                      String distance =(dist.round()).toString();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Details(),
-                                          settings: RouteSettings(
-                                            arguments: {
-                                              'id': lastDemandes[index]["id"],
-                                              'name': lastDemandes[index]["name"],
-                                              'email': lastDemandes[index]["email"],
-                                              'phone': lastDemandes[index]["phone"],
-                                              'day': lastDemandes[index]["day"],
-                                              'distance': distance,
-                                              'annonceText': lastDemandes[index]["annonceText"],
-                                              'descMessage': lastDemandes[index]["descMessage"],
-                                              'annonceLink': lastDemandes[index]["annonceLink"],
-                                              'r_mail': lastDemandes[index]["r_mail"],
-                                              'r_phone': lastDemandes[index]["r_phone"],
-                                              'rate': lastDemandes[index]["rate"],
-                                              'sector': lastDemandes[index]["sector"],
-                                            },
+                                        String distance =(dist.round()).toString();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => Details(),
+                                            settings: RouteSettings(
+
+                                              arguments: {
+                                                'id': lastOffres[index]["id"],
+                                                'name': lastOffres[index]["name"],
+                                                'email': lastOffres[index]["email"],
+                                                'phone': lastOffres[index]["phone"],
+                                                'day': lastOffres[index]["day"],
+                                                'distance': distance,
+                                                'annonceText': lastOffres[index]["annonceText"],
+                                                'descMessage': lastOffres[index]["descMessage"],
+                                                'annonceLink': lastOffres[index]["annonceLink"],
+                                                'r_mail': lastOffres[index]["r_mail"],
+                                                'r_phone': lastOffres[index]["r_phone"],
+                                                'rate': lastOffres[index]["rate"],
+                                                'sector': lastOffres[index]["sector"],
+                                              },
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    } else {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Login(),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                                  //leading: CircleAvatar(backgroundImage: AssetImage("images/liguey.png")),
-                                  leading: FutureBuilder(
-                                      future: _getimage(context, lastDemandes[index]["id"]),
-                                      builder: (context, snapshot){
-                                        if(!snapshot.data.toString().contains("http")){
-                                          return Container(
-                                            width: 50,
-                                            height: 50,
-                                            child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
-                                          );
-                                        }else{
-                                          return Container(
-                                            width: 50,
-                                            height: 50,
-                                            child: CircleAvatar(backgroundImage: NetworkImage(snapshot.data.toString())),
-                                          );
-                                        }
+                                        );
+                                      } else {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => Login(),
+                                          ),
+                                        );
                                       }
-                                  ),
-                                  title: Text(lastDemandes[index]["name"],
-                                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                                  subtitle: Column(
-                                    children: <Widget>[
-                                      Text(lastDemandes[index]["annonceText"], style: TextStyle(color: Colors.brown)),
-                                      Text(DateFormat('dd/MM/yyyy (HH:mm)').format(new DateTime.fromMillisecondsSinceEpoch(lastDemandes[index]["annonceTime"])), style: TextStyle(color: Colors.brown, fontSize: 10.0)),
-                                    ],
-                                  ),
-                                  trailing: Icon(Icons.keyboard_arrow_right, color: Colors.black26, size: 30.0))
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  }
-                  return Container(child: Text(Translations.of(context, 'jobbers')));
-                },
+                                    },
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                                    leading: FutureBuilder(
+                                        future: _getimage(context, lastOffres[index]["id"]),
+                                        builder: (context, snapshot){
+                                          if(!snapshot.data.toString().contains("http")){
+                                            return Container(
+                                              width: 50,
+                                              height: 50,
+                                              child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
+                                            );
+                                          }else{
+                                            return Container(
+                                              width: 50,
+                                              height: 50,
+                                              child: CircleAvatar(backgroundImage: NetworkImage(snapshot.data.toString())),
+                                            );
+                                          }
+                                        }
+                                    ),
+                                    title: Text(lastOffres[index]["name"], style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                                    subtitle: Column(
+                                      children: <Widget>[
+                                        Text(lastOffres[index]["annonceText"], style: TextStyle(color: Colors.brown)),
+                                        Text(DateFormat('dd/MM/yyyy (HH:mm)').format(new DateTime.fromMillisecondsSinceEpoch(lastOffres[index]["annonceTime"])), style: TextStyle(color: Colors.brown, fontSize: 10.0)),
+                                      ],
+                                    ),
+                                    trailing: Icon(Icons.keyboard_arrow_right, color: Colors.black26, size: 30.0))
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    }
+                    return Container(child: Text(Translations.of(context, 'jobs')));
+                  },
+                ),
               ),
-            ),
-            Container(
+              Container(
+                  padding: const EdgeInsets.only(top:15.0,bottom: 30.0),
+                  color: Color(0xFF766651),
+                  alignment: Alignment.center,
+                  child: RichText(
+                      text: TextSpan(children: [
+                        WidgetSpan(
+                          child: Icon(Icons.arrow_forward, size: 24, color: Colors.blue,
+                          ),
+                        ),
+                        TextSpan(
+                            text: Translations.of(context, 'alljobs'),
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 20.0,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                if(lat != 0 && lng != 0) {
+                                    Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => Offres(),
+                                      settings: RouteSettings(
+                                        arguments: {
+                                          'category': "Offre",
+                                          'lat': lat,
+                                          'lng': lng,
+                                          'sectors': sectors,
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }),
+                      ]))
+              ),
+              Container(
                 padding: EdgeInsets.all(8),
                 color: Color(0xFFC78327),
-                alignment: Alignment.center,
-                child: RichText(
-                    text: TextSpan(children: [
-                      TextSpan(
-                          text: Translations.of(context, 'alljobbers'),
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 20.0,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              if(lat != 0 && lng != 0) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Offres(),
-                                    settings: RouteSettings(
-                                      arguments: {
-                                        'category': "Demande",
-                                        'lat': lat,
-                                        'lng': lng,
-                                        'sectors': sectors,
-                                      },
+                child: FutureBuilder(
+                  future: dbRef.child("Demande").once(),
+                  builder: (context, snapshot) {
+
+                    List Demandes = [];
+                    List lastDemandes = [];
+                    if (snapshot.hasData && !snapshot.hasError) {
+                      Demandes.clear();
+                      DataSnapshot dataValues = snapshot.data as DataSnapshot;
+                      Map<dynamic, dynamic> demandes = dataValues.value;
+                      demandes.forEach((key, values) {
+                        if(values["annonceTime"]!=null) {
+                          Demandes.add(values);
+                        }
+                      });
+                      Demandes.sort((a, b) {
+                        return b["annonceTime"].compareTo(a["annonceTime"]);
+                      });
+                      for(var i =0; i<5; i++) {
+                        lastDemandes.add(Demandes[i]);
+                      };
+                      return new ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: lastDemandes.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          var image;
+
+                          return Card(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                ListTile(
+                                    onTap: () {
+                                      if (user != null) {
+
+                                        double dist = Geolocator.distanceBetween(lat, lng, lastDemandes[index]["lat"], lastDemandes[index]["lng"])/1000;
+                                        String distance =(dist.round()).toString();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => Details(),
+                                            settings: RouteSettings(
+                                              arguments: {
+                                                'id': lastDemandes[index]["id"],
+                                                'name': lastDemandes[index]["name"],
+                                                'email': lastDemandes[index]["email"],
+                                                'phone': lastDemandes[index]["phone"],
+                                                'day': lastDemandes[index]["day"],
+                                                'distance': distance,
+                                                'annonceText': lastDemandes[index]["annonceText"],
+                                                'descMessage': lastDemandes[index]["descMessage"],
+                                                'annonceLink': lastDemandes[index]["annonceLink"],
+                                                'r_mail': lastDemandes[index]["r_mail"],
+                                                'r_phone': lastDemandes[index]["r_phone"],
+                                                'rate': lastDemandes[index]["rate"],
+                                                'sector': lastDemandes[index]["sector"],
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => Login(),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                                    //leading: CircleAvatar(backgroundImage: AssetImage("images/liguey.png")),
+                                    leading: FutureBuilder(
+                                        future: _getimage(context, lastDemandes[index]["id"]),
+                                        builder: (context, snapshot){
+                                          if(!snapshot.data.toString().contains("http")){
+                                            return Container(
+                                              width: 50,
+                                              height: 50,
+                                              child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
+                                            );
+                                          }else{
+                                            return Container(
+                                              width: 50,
+                                              height: 50,
+                                              child: CircleAvatar(backgroundImage: NetworkImage(snapshot.data.toString())),
+                                            );
+                                          }
+                                        }
                                     ),
-                                  ),
-                                );
-                              }
-                            }),
-                    ]))
-            ),
-            Container(
-              height: 50,
-              width: 250,
-//              padding: const EdgeInsets.only(left:15.0,right: 15.0,top:15.0,bottom: 0),
-              decoration: BoxDecoration(
-                  color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
-              child: TextButton(
-                onPressed: () {
-                  if (user != null) {
-                    if(lat != 0 && lng != 0) {
+                                    title: Text(lastDemandes[index]["name"],
+                                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                                    subtitle: Column(
+                                      children: <Widget>[
+                                        Text(lastDemandes[index]["annonceText"], style: TextStyle(color: Colors.brown)),
+                                        Text(DateFormat('dd/MM/yyyy (HH:mm)').format(new DateTime.fromMillisecondsSinceEpoch(lastDemandes[index]["annonceTime"])), style: TextStyle(color: Colors.brown, fontSize: 10.0)),
+                                      ],
+                                    ),
+                                    trailing: Icon(Icons.keyboard_arrow_right, color: Colors.black26, size: 30.0))
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    }
+                    return Container(child: Text(Translations.of(context, 'jobbers')));
+                  },
+                ),
+              ),
+              Container(
+                  padding: const EdgeInsets.only(top:15.0,bottom: 30.0),
+                  color: Color(0xFFC78327),
+                  alignment: Alignment.center,
+                  child: RichText(
+                      text: TextSpan(children: [
+                        WidgetSpan(
+                          child: Icon(Icons.arrow_forward, size: 24, color: Colors.blueAccent,),
+                        ),
+                        TextSpan(
+                            text: Translations.of(context, 'alljobbers'),
+                            style: TextStyle(
+                              color: Colors.blueAccent,
+                              fontSize: 20.0,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                if(lat != 0 && lng != 0) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => Offres(),
+                                      settings: RouteSettings(
+                                        arguments: {
+                                          'category': "Demande",
+                                          'lat': lat,
+                                          'lng': lng,
+                                          'sectors': sectors,
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }),
+                      ]))
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              Container(
+                height: 50,
+                width: 250,
+                decoration: BoxDecoration(color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
+                child: TextButton(
+                  onPressed: () {
+                    if (user != null) {
+                      if(lat != 0 && lng != 0) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SendOffres(),
+                            settings: RouteSettings(
+                              arguments: {
+                                'id': id,
+                                'name': name,
+                                'email': email,
+                                'phone': phone,
+                                'lat': lat,
+                                'lng': lng,
+                                'type': "Demande",
+                                'sectors': sectors,
+                              },
+                            ),
+                          ),
+                        );
+                      }
+                    } else {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => SendOffres(),
-                          settings: RouteSettings(
-                            arguments: {
-                              'id': id,
-                              'name': name,
-                              'email': email,
-                              'phone': phone,
-                              'lat': lat,
-                              'lng': lng,
-                              'type': "Demande",
-                              'sectors': sectors,
-                            },
-                          ),
+                          builder: (context) => Login(),
                         ),
                       );
                     }
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Login(),
-                      ),
-                    );
-                  }
-                },
-                child: Text(
-                  Translations.of(context, 'postjobber'),
-                  style: TextStyle(color: Colors.black, fontSize: 20),
+                  },
+                  child: Text(
+                    Translations.of(context, 'postjobber'),
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  ),
                 ),
               ),
-            ),
-          ],
+              SizedBox(
+                height: 30,
+              ),
+              Container(
+                height: 50,
+                width: 250,
+                decoration: BoxDecoration(color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
+                child: TextButton(
+                  onPressed: () {
+                    if (user != null) {
+                      if(lat != 0 && lng != 0) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Picture(),
+                            settings: RouteSettings(
+                              arguments: {
+                                'id': id,
+                                'name': name,
+                                'email': email,
+                                'phone': phone,
+                                'lat': lat,
+                                'lng': lng,
+                                'type': "Demande",
+                                'sectors': sectors,
+                              },
+                            ),
+                          ),
+                        );
+                      }
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Login(),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    "Profil",
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Future<String> _getCategories() async {
-    String result = (await dbRef.child("JobCategories").child(Category).once()).value;
+  Future<String> _getCategories(String lang) async {
+    String result = (await dbRef.child("JobCategories").child(lang).once()).value;
     return result;
   }
 

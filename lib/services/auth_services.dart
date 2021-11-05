@@ -8,7 +8,6 @@ class AuthService {
   AuthService(this._auth);
 
   final databaseRef = FirebaseDatabase.instance.reference();
-  final Future<FirebaseApp> _future = Firebase.initializeApp();
 
   Stream<User?> get authStateChanges => _auth.idTokenChanges();
 

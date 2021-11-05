@@ -10,38 +10,16 @@ class Details extends StatefulWidget {
 
 class _DetailsState extends State<Details> {
 
-  var name, annonceText, descMessage, email, phone, rate, distance, image, uid, url, Aimage;
+  var name, annonceText, descMessage, email, phone, rate, distance, image, uid, cv;
   bool r_mail = true;
   bool r_phone = true;
+  bool vis = false;
 
   @override
   void initState() {
     // TODO: implement initState
-    //_getImage();
     super.initState();
   }
-/*
-  _getImage() async {
-
-    url = await FirebaseStorage.instance.ref().child("images").child("00o1deOAKLfAnHZW0BDgPYvis182.*").getDownloadURL().toString();
-    if( url!=null) {
-      image = Image.network(
-        url,
-        width: 400,
-        height: 240,
-        fit: BoxFit.fill,
-      );
-    }else{
-      image = Image.asset(
-        'images/liguey.png',
-        width: 400,
-        height: 240,
-        fit: BoxFit.fill,
-      );
-    }
-  }
-
-  */
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +45,7 @@ class _DetailsState extends State<Details> {
       color: Color(0xFFC78327),
 
       child: FutureBuilder(
-          future: _getimage(context, uid),
+          future: _getImage(context, uid),
           builder: (context, snapshot){
             return Container(
               width: 400,
@@ -104,11 +82,17 @@ class _DetailsState extends State<Details> {
               ],
             ),
           ),
-          Icon(
-            Icons.star,
-            color: Colors.red[500],
+          Visibility(
+            child: FutureBuilder(
+                future: _getCV(context, uid),
+                builder: (context, snapshot){
+                  return Container(
+                      child: Text("Mon CV")
+                  );
+                }
+            ),
+            visible: vis,
           ),
-          Text(rate.toString()),
         ],
       ),
     );
@@ -188,8 +172,8 @@ class _DetailsState extends State<Details> {
     );
   }
 //https://bleyldev.medium.com/how-to-show-photos-from-firestore-in-flutter-6adc1c0e405e
-  Future<Widget> _getimage(BuildContext context, String imageName) async {
-    await FireStorageService.loadImage(context, imageName).then((value) {
+  Future<Widget> _getImage(BuildContext context, String imageName) async {
+    await ImageService.loadImage(context, imageName).then((value) {
 
       if(value.startsWith("http")){
         image = Image.network(value, fit: BoxFit.fill);
@@ -199,15 +183,37 @@ class _DetailsState extends State<Details> {
     });
     return image;
   }
+
+  Future<Widget> _getCV(BuildContext context, String cvName) async {
+    await CVService.loadImage(context, cvName)
+        .then((value) {
+          if(value.startsWith("http")){
+            cv = value;
+            vis = true;
+          }
+        });
+    return cv;
+  }
 }
 
-class FireStorageService extends ChangeNotifier {
-  static Future<dynamic> loadImage(BuildContext context, String Image) async {
-    String url = await FirebaseStorage.instance.ref().child("images").child(Image).getDownloadURL();
+class ImageService extends ChangeNotifier {
+  static Future<dynamic> loadImage(BuildContext context, String userid) async {
+    String url = await FirebaseStorage.instance.ref().child("images").child(userid).getDownloadURL();
     if(url.toString().startsWith("http")){
       return url;
     }else{
      return null;
+    }
+  }
+}
+
+class CVService extends ChangeNotifier {
+  static Future<dynamic> loadImage(BuildContext context, String userid) async {
+    String url = await FirebaseStorage.instance.ref().child("cv").child(userid).getDownloadURL();
+    if(url.toString().startsWith("http")){
+      return url;
+    }else{
+      return null;
     }
   }
 }
