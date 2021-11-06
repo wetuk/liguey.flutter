@@ -5,10 +5,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_liguey/models/user.dart';
-import 'package:flutter_liguey/screens/picture.dart';
 import 'package:flutter_liguey/screens/details.dart';
 import 'package:flutter_liguey/screens/login.dart';
 import 'package:flutter_liguey/screens/offres.dart';
+import 'package:flutter_liguey/screens/profil.dart';
 import 'package:flutter_liguey/screens/sendoffre.dart';
 import 'package:flutter_liguey/services/auth_services.dart';
 import 'package:flutter/material.dart';
@@ -24,12 +24,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 //https://www.youtube.com/playlist?list=PLjxrf2q8roU23XGwz3Km7sQZFTdB996iG
 //https://github.com/JohannesMilke/firebase_download_example/blob/master/lib/api/firebase_api.dart
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MyApp());
-
 }
 
 class MyApp extends StatelessWidget {
@@ -69,8 +67,6 @@ class MyLocation extends StatefulWidget {
 }
 
 class _MyLocationState extends State<MyLocation> {
-  //late Future<List<FirebaseFile>> futureFiles;
-
   Position? _currentPosition;
   late UserModel annonce;
   late DatabaseReference Ref;
@@ -111,7 +107,7 @@ class _MyLocationState extends State<MyLocation> {
   Widget build(BuildContext context) {
     final user = context.watch<User?>();
     if (user != null) {
-      log = Translations.of(context, 'deconnexion');
+      log = Translations.of(context, 'profil');
       id = user.uid;
       email = user.email!;
       _getUser(id);
@@ -131,7 +127,21 @@ class _MyLocationState extends State<MyLocation> {
                 ),
                 onPressed: () async{
                   if (user != null) {
-                    await _signOut();
+                    //await _signOut();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Profil(),
+                        settings: RouteSettings(
+                          arguments: {
+                            'id': id,
+                            'name': name,
+                            'email': email,
+                            'phone': phone,
+                          },
+                        ),
+                      ),
+                    );
                   } else {
                     Navigator.push(
                       context,
@@ -286,8 +296,21 @@ class _MyLocationState extends State<MyLocation> {
                                     },
                                     contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
                                     leading: FutureBuilder(
-                                        future: _getimage(context, lastOffres[index]["id"]),
+                                        future: _loadImage(lastOffres[index]["id"]),
                                         builder: (context, snapshot){
+                                          if (snapshot.data.toString() != "null") {
+                                            return Container(
+                                              width: 50,
+                                              height: 50,
+                                              child: CircleAvatar(backgroundImage: NetworkImage(snapshot.data.toString())),
+                                            );
+                                          } else {
+                                            return Container(
+                                              width: 50,
+                                              height: 50,
+                                              child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
+                                            );
+                                          }
                                           if(!snapshot.data.toString().contains("http")){
                                             return Container(
                                               width: 50,
@@ -433,21 +456,20 @@ class _MyLocationState extends State<MyLocation> {
                                       }
                                     },
                                     contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                                    //leading: CircleAvatar(backgroundImage: AssetImage("images/liguey.png")),
                                     leading: FutureBuilder(
-                                        future: _getimage(context, lastDemandes[index]["id"]),
+                                        future: _loadImage(lastDemandes[index]["id"]),
                                         builder: (context, snapshot){
-                                          if(!snapshot.data.toString().contains("http")){
-                                            return Container(
-                                              width: 50,
-                                              height: 50,
-                                              child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
-                                            );
-                                          }else{
+                                          if (snapshot.data.toString() != "null") {
                                             return Container(
                                               width: 50,
                                               height: 50,
                                               child: CircleAvatar(backgroundImage: NetworkImage(snapshot.data.toString())),
+                                            );
+                                          } else {
+                                            return Container(
+                                              width: 50,
+                                              height: 50,
+                                              child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
                                             );
                                           }
                                         }
@@ -556,48 +578,6 @@ class _MyLocationState extends State<MyLocation> {
               SizedBox(
                 height: 30,
               ),
-              Container(
-                height: 50,
-                width: 250,
-                decoration: BoxDecoration(color: Color(0xFFE0BF92), borderRadius: BorderRadius.circular(20)),
-                child: TextButton(
-                  onPressed: () {
-                    if (user != null) {
-                      if(lat != 0 && lng != 0) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Picture(),
-                            settings: RouteSettings(
-                              arguments: {
-                                'id': id,
-                                'name': name,
-                                'email': email,
-                                'phone': phone,
-                                'lat': lat,
-                                'lng': lng,
-                                'type': "Demande",
-                                'sectors': sectors,
-                              },
-                            ),
-                          ),
-                        );
-                      }
-                    } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Login(),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text(
-                    "Profil",
-                    style: TextStyle(color: Colors.white, fontSize: 15),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -627,7 +607,6 @@ class _MyLocationState extends State<MyLocation> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-
       return Future.error('Location services are disabled.');
     }
 
@@ -648,29 +627,8 @@ class _MyLocationState extends State<MyLocation> {
     lng = _currentPosition!.longitude;
   }
 
-//https://bleyldev.medium.com/how-to-show-photos-from-firestore-in-flutter-6adc1c0e405e
-  Future<Widget> _getimage(BuildContext context, String imageName) async {
-    Image im ;
-    final value = await FireStorageService.loadImage(context, imageName);
-    im =Image.network(
-      value.toString(),
-    );
-    return value;
-    /*
-    await FireStorageService.loadImage(context, imageName).then((value) {
-      if(value.toString().startsWith("http")){
-        im = NetworkImage(value.toString());
-      }else{
-        im = AssetImage('images/liguey.png');
-      }
-    });
-    return im;*/
-  }
-}
-
-class FireStorageService extends ChangeNotifier {
-  FireStorageService();
-  static Future<dynamic> loadImage(BuildContext context, String image) async {
-    return await FirebaseStorage.instance.ref().child("images").child(image).getDownloadURL();
+  Future<String> _loadImage(String image) async {
+    String result = await FirebaseStorage.instance.ref().child("images").child(image).getDownloadURL();
+    return result;
   }
 }

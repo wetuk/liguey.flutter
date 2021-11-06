@@ -10,7 +10,8 @@ class Details extends StatefulWidget {
 
 class _DetailsState extends State<Details> {
 
-  var name, annonceText, descMessage, email, phone, rate, distance, image, uid, cv;
+  var name, annonceText, descMessage, email, phone, rate, distance, image, uid,
+      cv;
   bool r_mail = true;
   bool r_phone = true;
   bool vis = false;
@@ -23,8 +24,10 @@ class _DetailsState extends State<Details> {
 
   @override
   Widget build(BuildContext context) {
-
-    final Map arguments = ModalRoute.of(context)!.settings.arguments as Map;
+    final Map arguments = ModalRoute
+        .of(context)!
+        .settings
+        .arguments as Map;
     uid = arguments['id'];
     name = arguments['name'];
     email = arguments['email'];
@@ -33,10 +36,10 @@ class _DetailsState extends State<Details> {
     distance = arguments['distance'];
     annonceText = arguments['annonceText'];
     descMessage = arguments['descMessage'];
-    if(arguments['r_mail']! == "NO"){
+    if (arguments['r_mail']! == "NO") {
       r_mail = false;
     }
-    if(arguments['r_phone']! == "NO"){
+    if (arguments['r_phone']! == "NO") {
       r_phone = false;
     }
 
@@ -45,14 +48,26 @@ class _DetailsState extends State<Details> {
       color: Color(0xFFC78327),
 
       child: FutureBuilder(
-          future: _getImage(context, uid),
-          builder: (context, snapshot){
-            return Container(
-              width: 400,
-              height: 240,
-              child: image
-            );
+        future: _loadImage(uid),
+        builder: (context, AsyncSnapshot<String> snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.data.toString() != "null") {
+              return Container(
+                child: Image.network(snapshot.data.toString(),
+                    fit: BoxFit.cover),
+              );
+            } else {
+              return Container(
+                  width: 200,
+                  height: 200,
+                  child: Image.asset('images/liguey.png', fit: BoxFit.fill)
+              );
+            }
           }
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        },
       ),
     );
 
@@ -82,29 +97,41 @@ class _DetailsState extends State<Details> {
               ],
             ),
           ),
-          Visibility(
+          Container(
             child: FutureBuilder(
-                future: _getCV(context, uid),
-                builder: (context, snapshot){
-                  return Container(
-                      child: Text("Mon CV")
-                  );
+              future: _loadCV(uid),
+              builder: (context, AsyncSnapshot<String> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.data.toString() != "null") {
+                    return Container(
+                        child: Text("CV", style: TextStyle(
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),)
+                    );
+                  }
                 }
+                return Container(
+                    child: Text("")
+                );
+              },
             ),
-            visible: vis,
           ),
         ],
       ),
     );
 
-    Color color = Theme.of(context).primaryColor;
+    Color color = Theme
+        .of(context)
+        .primaryColor;
 
     Widget buttonSection = Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildButtonColumn(r_phone, color, Icons.call, 'CALL'),
-        _buildButtonColumn(r_mail,color, Icons.mail, 'EMAIL'),
-        _buildButtonColumn(true, color, Icons.location_pin, "Dist: "+distance+" km"),
+        _buildButtonColumn(r_mail, color, Icons.mail, 'EMAIL'),
+        _buildButtonColumn(
+            true, color, Icons.location_pin, "Dist: " + distance + " km"),
       ],
     );
 
@@ -137,11 +164,11 @@ class _DetailsState extends State<Details> {
 
   Widget _buildButtonColumn(bool visible, Color color, IconData icon, String label) {
     return GestureDetector(
-      onTap: (){
-        if(label == "CALL"){
-          launch("tel:"+ phone);
-        }else if (label == "EMAIL"){
-          launch("mailto:"+ email +",wetuk.sa@gmail.com");
+      onTap: () {
+        if (label == "CALL") {
+          launch("tel:" + phone);
+        } else if (label == "EMAIL") {
+          launch("mailto:" + email + ",wetuk.sa@gmail.com");
         }
       },
       child: Column(
@@ -150,7 +177,7 @@ class _DetailsState extends State<Details> {
 
         children: [
           Visibility(
-            child:Icon(icon, color: color),
+            child: Icon(icon, color: color),
             visible: visible,
           ),
           Container(
@@ -171,49 +198,18 @@ class _DetailsState extends State<Details> {
       ),
     );
   }
+
 //https://bleyldev.medium.com/how-to-show-photos-from-firestore-in-flutter-6adc1c0e405e
-  Future<Widget> _getImage(BuildContext context, String imageName) async {
-    await ImageService.loadImage(context, imageName).then((value) {
 
-      if(value.startsWith("http")){
-        image = Image.network(value, fit: BoxFit.fill);
-      }else{
-        image = Image.asset('images/liguey.png', fit: BoxFit.fill);
-      }
-    });
-    return image;
+  Future<String> _loadImage(String image) async {
+    String result = await FirebaseStorage.instance.ref().child("images").child(
+        image).getDownloadURL();
+    return result;
   }
 
-  Future<Widget> _getCV(BuildContext context, String cvName) async {
-    await CVService.loadImage(context, cvName)
-        .then((value) {
-          if(value.startsWith("http")){
-            cv = value;
-            vis = true;
-          }
-        });
-    return cv;
-  }
-}
-
-class ImageService extends ChangeNotifier {
-  static Future<dynamic> loadImage(BuildContext context, String userid) async {
-    String url = await FirebaseStorage.instance.ref().child("images").child(userid).getDownloadURL();
-    if(url.toString().startsWith("http")){
-      return url;
-    }else{
-     return null;
-    }
-  }
-}
-
-class CVService extends ChangeNotifier {
-  static Future<dynamic> loadImage(BuildContext context, String userid) async {
-    String url = await FirebaseStorage.instance.ref().child("cv").child(userid).getDownloadURL();
-    if(url.toString().startsWith("http")){
-      return url;
-    }else{
-      return null;
-    }
+  Future<String> _loadCV(String image) async {
+    String result = await FirebaseStorage.instance.ref().child("cv").child(
+        image).getDownloadURL();
+    return result;
   }
 }

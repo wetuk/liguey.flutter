@@ -43,6 +43,7 @@ class Translations {
       'TNombre' : "Number : ",
       'langue' : "ENG",
       'picture' : "Take a picture",
+      'profil' : "My Account",
     },
     'fr': {
       'welcome': "Bienvenue sur LIGUEY,\n\ninscrivez-vous pour accéder aux annonces",
@@ -77,6 +78,8 @@ class Translations {
       'TNombre' : "Nombre : ",
       'langue' : "FR",
       'picture' : "Ajouter une photo",
+      'profil' : "Mon Compte",
+
     }
   };
 

@@ -177,7 +177,24 @@ class _OffresState extends State<Offres> {
                                           }
                                         },
                                         contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                                        leading: CircleAvatar(backgroundImage: AssetImage("images/liguey.png")),
+                                        leading: FutureBuilder(
+                                            future: _loadImage(Offres[index]["id"]),
+                                            builder: (context, snapshot){
+                                              if (snapshot.data.toString() != "null") {
+                                                return Container(
+                                                  width: 50,
+                                                  height: 50,
+                                                  child: CircleAvatar(backgroundImage: NetworkImage(snapshot.data.toString())),
+                                                );
+                                              } else {
+                                                return Container(
+                                                  width: 50,
+                                                  height: 50,
+                                                  child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
+                                                );
+                                              }
+                                            }
+                                        ),
                                         title: Text(Offres[index]["name"],
                                             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                                         subtitle: Column(
@@ -209,23 +226,8 @@ class _OffresState extends State<Offres> {
     );
   }
 
-//https://bleyldev.medium.com/how-to-show-photos-from-firestore-in-flutter-6adc1c0e405e
-  Future<Widget> _getimage(BuildContext context, String imageName) async {
-    await FireStorageService.loadImage(context, imageName).then((value) {
-
-      if(value != null){
-        image = NetworkImage(value.toString());
-      }else{
-        image = AssetImage('images/liguey.png');
-      }
-    });
-    return image;
-  }
-}
-
-class FireStorageService extends ChangeNotifier {
-  FireStorageService();
-  static Future<dynamic> loadImage(BuildContext context, String Image) async {
-    return await FirebaseStorage.instance.ref().child("images").child(Image).getDownloadURL();
+  Future<String> _loadImage(String image) async {
+    String result = await FirebaseStorage.instance.ref().child("images").child(image).getDownloadURL();
+    return result;
   }
 }
