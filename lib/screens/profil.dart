@@ -78,26 +78,6 @@ class _ProfilState extends State<Profil> {
       padding: const EdgeInsets.all(32),
       child: Column(
         children: [
-          Container(
-              alignment: Alignment.center,
-              child: RichText(
-                  text: TextSpan(children: [
-                    WidgetSpan(
-                      child: Icon(Icons.logout, size: 15.0, color: Colors.blue,
-                      ),
-                    ),
-                    TextSpan(
-                        text: Translations.of(context, 'deconnexion'),
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 15.0,
-                        ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () async {
-                            await context.read<AuthService>().signOut().whenComplete(() => _success(context));
-                          }),
-                  ]))
-          ),
           Row(
             children: <Widget>[
               Expanded(
@@ -150,6 +130,26 @@ class _ProfilState extends State<Profil> {
               ),
             ],
           ),
+          Container(
+              alignment: Alignment.center,
+              child: RichText(
+                  text: TextSpan(children: [
+                    WidgetSpan(
+                      child: Icon(Icons.logout, size: 15.0, color: Colors.blue,
+                      ),
+                    ),
+                    TextSpan(
+                        text: Translations.of(context, 'deconnexion'),
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontSize: 15.0,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () async {
+                            await context.read<AuthService>().signOut().whenComplete(() => _success(context));
+                          }),
+                  ]))
+          ),
         ],
       ),
     );
@@ -176,8 +176,8 @@ class _ProfilState extends State<Profil> {
         body: ListView(
           children: [
             imageSection,
-            titleSection,
             buttonSection,
+            titleSection,
           ],
         ),
       ),

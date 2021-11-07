@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_liguey/models/user.dart';
 import 'package:flutter_liguey/screens/details.dart';
@@ -45,7 +44,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: "APP",
+        title: "Liguey",
         localizationsDelegates: [
           TranslationsDelegate(),
           GlobalMaterialLocalizations.delegate,
@@ -93,14 +92,7 @@ class _MyLocationState extends State<MyLocation> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _getLoc();
-    _getCategories(Translations.of(context, 'langue')).then((val){
-      sectors = val;
-    });
-  }
-
-  Future <MyApp?> _signOut()  async{
-    await FirebaseAuth.instance.signOut();
-    return null;
+    _getCategories(Translations.of(context, 'langue')).then((val){sectors = val;});
   }
 
   @override
@@ -109,11 +101,11 @@ class _MyLocationState extends State<MyLocation> {
     if (user != null) {
       log = Translations.of(context, 'profil');
       id = user.uid;
-      email = user.email!;
       _getUser(id);
     }else{
       log = Translations.of(context, 'connexion');
     }
+
     return MaterialApp(
       title: 'Liguey',
       home: Scaffold(
@@ -127,7 +119,6 @@ class _MyLocationState extends State<MyLocation> {
                 ),
                 onPressed: () async{
                   if (user != null) {
-                    //await _signOut();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -226,14 +217,19 @@ class _MyLocationState extends State<MyLocation> {
                 child: FutureBuilder(
                   future: dbRef.child("Offre").once(),
                   builder: (context, snapshot) {
-
                     List Offres = [];
                     List lastOffres = [];
-                    if (snapshot.hasData && !snapshot.hasError) {
-                      Offres.clear();
-                      DataSnapshot dataValues = snapshot.data as DataSnapshot;
-                      Map<dynamic, dynamic> offres = dataValues.value;
-                      offres.forEach((key, values) {
+                    if (!snapshot.hasData) {
+                      return Container(
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }else{
+                      //Offres.clear();
+                      DataSnapshot? dataValues = snapshot.data as DataSnapshot;
+                      Map<dynamic, dynamic> o = dataValues.value;
+                      o.forEach((key, values) {
                         if(values["annonceTime"]!=null) {
                           Offres.add(values);
                         }
@@ -243,8 +239,7 @@ class _MyLocationState extends State<MyLocation> {
                       });
                       for(var i =0; i<5; i++) {
                         lastOffres.add(Offres[i]);
-                      };
-                      var image;
+                      }
 
                       return new ListView.builder(
                         shrinkWrap: true,
@@ -309,19 +304,6 @@ class _MyLocationState extends State<MyLocation> {
                                               width: 50,
                                               height: 50,
                                               child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
-                                            );
-                                          }
-                                          if(!snapshot.data.toString().contains("http")){
-                                            return Container(
-                                              width: 50,
-                                              height: 50,
-                                              child: CircleAvatar(backgroundImage: AssetImage('images/liguey.png')),
-                                            );
-                                          }else{
-                                            return Container(
-                                              width: 50,
-                                              height: 50,
-                                              child: CircleAvatar(backgroundImage: NetworkImage(snapshot.data.toString())),
                                             );
                                           }
                                         }
@@ -391,11 +373,18 @@ class _MyLocationState extends State<MyLocation> {
 
                     List Demandes = [];
                     List lastDemandes = [];
-                    if (snapshot.hasData && !snapshot.hasError) {
-                      Demandes.clear();
-                      DataSnapshot dataValues = snapshot.data as DataSnapshot;
-                      Map<dynamic, dynamic> demandes = dataValues.value;
-                      demandes.forEach((key, values) {
+
+                    if (!snapshot.hasData) {
+                      return Container(
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }else{
+                      //Demandes.clear();
+                      DataSnapshot? dataValues = snapshot.data as DataSnapshot;
+                      Map<dynamic, dynamic> d = dataValues.value;
+                      d.forEach((key, values) {
                         if(values["annonceTime"]!=null) {
                           Demandes.add(values);
                         }
@@ -405,14 +394,13 @@ class _MyLocationState extends State<MyLocation> {
                       });
                       for(var i =0; i<5; i++) {
                         lastDemandes.add(Demandes[i]);
-                      };
+                      }
+
                       return new ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
                         itemCount: lastDemandes.length,
                         itemBuilder: (BuildContext context, int index) {
-                          var image;
-
                           return Card(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,10 +582,10 @@ class _MyLocationState extends State<MyLocation> {
 
     return dbRef.child("Users").child(uid).once().then((DataSnapshot snap) {
       name = snap.value['userName'].toString();
+      email = snap.value['userEmail'].toString();
       phone = snap.value['userPhone'].toString();
 
       return name;
-
     });
   }
 

@@ -111,21 +111,6 @@ class _PictureState extends State<Picture> {
                     onPressed: () => _upload('gallery', uid, name),
                     icon: Icon(Icons.library_add),
                     label: Text('Gallery')),
-                Container(
-                  height: 30.0,
-                  width: 30.0,
-                  child: LiquidCircularProgressIndicator(
-                    value: progress/100,
-                    valueColor: AlwaysStoppedAnimation(Colors.pinkAccent),
-                    backgroundColor: Colors.white,
-                    direction: Axis.vertical,
-                    center: Text(
-                      "$progress%",
-                      style: GoogleFonts.poppins(
-                          color: Colors.black87, fontSize: 25.0),
-                    ), borderWidth: 50, borderColor: Colors.white,
-                  ),
-                )
               ],
             ),
             Container(
@@ -166,17 +151,32 @@ class _PictureState extends State<Picture> {
                           )
                       );
                     }else{
-                      return SingleChildScrollView(
-                          child: Column(
-                              children: <Widget>[
-                                Container(
-                                  width: 200,
-                                  height: 200,
-                                  child: Image.asset('images/liguey.png', fit: BoxFit.fill)
-                                )
-                              ]
-                          )
-                      );                    }
+                      if (progress == 0.0){
+                        return SingleChildScrollView(
+                            child: Container(
+                                width: 200,
+                                height: 200,
+                                child: Image.asset('images/liguey.png', fit: BoxFit.fill)
+                            )
+                        );
+                      }else{
+                        return Container(
+                          height: 200,
+                          width: 200,
+                          child: LiquidCircularProgressIndicator(
+                            value: progress/100,
+                            valueColor: AlwaysStoppedAnimation(Colors.pinkAccent),
+                            backgroundColor: Colors.white,
+                            direction: Axis.vertical,
+                            center: Text(
+                              "$progress%",
+                              style: GoogleFonts.poppins(
+                                  color: Colors.black87, fontSize: 25.0),
+                            ), borderWidth: 50, borderColor: Colors.white,
+                          ),
+                        );
+                      }
+                    }
                   }
                   return Center(
                     child: CircularProgressIndicator(),
