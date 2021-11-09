@@ -15,6 +15,7 @@ MERGED from [:google_maps_flutter] C:\Users\diaw_d\AndroidStudioProjects\flutter
 MERGED from [:image_picker] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\image_picker\intermediates\library_manifest\debug\AndroidManifest.xml:2:1-19:12
 MERGED from [:file_picker] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\file_picker\intermediates\library_manifest\debug\AndroidManifest.xml:2:1-17:12
 MERGED from [:flutter_plugin_android_lifecycle] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\flutter_plugin_android_lifecycle\intermediates\library_manifest\debug\AndroidManifest.xml:2:1-7:12
+MERGED from [:syncfusion_flutter_pdfviewer] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\syncfusion_flutter_pdfviewer\intermediates\library_manifest\debug\AndroidManifest.xml:2:1-7:12
 MERGED from [:path_provider] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\path_provider\intermediates\library_manifest\debug\AndroidManifest.xml:2:1-7:12
 MERGED from [:open_mail_app] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\open_mail_app\intermediates\library_manifest\debug\AndroidManifest.xml:2:1-15:12
 MERGED from [:geocoding] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\geocoding\intermediates\library_manifest\debug\AndroidManifest.xml:2:1-7:12
@@ -272,6 +273,8 @@ MERGED from [:file_picker] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\
 MERGED from [:file_picker] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\file_picker\intermediates\library_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:flutter_plugin_android_lifecycle] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\flutter_plugin_android_lifecycle\intermediates\library_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:flutter_plugin_android_lifecycle] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\flutter_plugin_android_lifecycle\intermediates\library_manifest\debug\AndroidManifest.xml:5:5-44
+MERGED from [:syncfusion_flutter_pdfviewer] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\syncfusion_flutter_pdfviewer\intermediates\library_manifest\debug\AndroidManifest.xml:5:5-44
+MERGED from [:syncfusion_flutter_pdfviewer] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\syncfusion_flutter_pdfviewer\intermediates\library_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:path_provider] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\path_provider\intermediates\library_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:path_provider] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\path_provider\intermediates\library_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:open_mail_app] C:\Users\diaw_d\AndroidStudioProjects\flutter_liguey\build\open_mail_app\intermediates\library_manifest\debug\AndroidManifest.xml:5:5-44

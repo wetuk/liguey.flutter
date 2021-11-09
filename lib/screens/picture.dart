@@ -95,6 +95,7 @@ class _PictureState extends State<Picture> {
     return Scaffold(
       appBar: AppBar(
         title: Text(Translations.of(context, 'picture')),
+        backgroundColor: Color(0xFFE0BF92),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -105,11 +106,11 @@ class _PictureState extends State<Picture> {
               children: [
                 ElevatedButton.icon(
                     onPressed: () => _upload('camera', uid, name),
-                    icon: Icon(Icons.camera),
+                    icon: Icon(Icons.camera, color:  Color(0xFFE0BF92),),
                     label: Text('camera')),
                 ElevatedButton.icon(
                     onPressed: () => _upload('gallery', uid, name),
-                    icon: Icon(Icons.library_add),
+                    icon: Icon(Icons.library_add, color:  Color(0xFFE0BF92),),
                     label: Text('Gallery')),
               ],
             ),

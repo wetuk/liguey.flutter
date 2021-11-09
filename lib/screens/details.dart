@@ -1,5 +1,9 @@
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_liguey/screens/seecv.dart';
+import 'package:flutter_liguey/translations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Details extends StatefulWidget {
@@ -46,7 +50,6 @@ class _DetailsState extends State<Details> {
     Widget imageSection = Container(
       padding: EdgeInsets.all(8),
       color: Color(0xFFC78327),
-
       child: FutureBuilder(
         future: _loadImage(uid),
         builder: (context, AsyncSnapshot<String> snapshot) {
@@ -59,7 +62,7 @@ class _DetailsState extends State<Details> {
             } else {
               return Container(
                   width: 200,
-                  height: 200,
+                  height: 300,
                   child: Image.asset('images/liguey.png', fit: BoxFit.fill)
               );
             }
@@ -97,26 +100,6 @@ class _DetailsState extends State<Details> {
               ],
             ),
           ),
-          Container(
-            child: FutureBuilder(
-              future: _loadCV(uid),
-              builder: (context, AsyncSnapshot<String> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.data.toString() != "null") {
-                    return Container(
-                        child: Text("CV", style: TextStyle(
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
-                        ),)
-                    );
-                  }
-                }
-                return Container(
-                    child: Text("")
-                );
-              },
-            ),
-          ),
         ],
       ),
     );
@@ -135,6 +118,51 @@ class _DetailsState extends State<Details> {
       ],
     );
 
+    Widget cvSection = Padding(
+      padding: EdgeInsets.all(15),
+      child: FutureBuilder(
+        future: _loadCV(uid),
+        builder: (context, AsyncSnapshot<String> snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.data.toString() != "null") {
+              return Container(
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                      text: TextSpan(children: [
+                        TextSpan(
+                            text: "CV",
+                            style: TextStyle(
+                              color: Colors.blueAccent,
+                              fontSize: 15.0,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                //launch(snapshot.data.toString());
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SeeCV(),
+                                    settings: RouteSettings(
+                                      arguments: {
+                                        'url': snapshot.data.toString(),
+                                        'name': name,
+                                      },
+                                    ),
+                                  ),
+                                );
+                              }),
+                      ]))
+              );
+            }
+          }
+          return Container(
+              child: Text("")
+          );
+        },
+      ),
+    );
+
     Widget textSection = Padding(
       padding: EdgeInsets.all(32),
       child: Text(
@@ -143,21 +171,19 @@ class _DetailsState extends State<Details> {
       ),
     );
 
-    return MaterialApp(
-      title: 'Liguey',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Liguey'),
-          backgroundColor: Color(0xFFE0BF92),
-        ),
-        body: ListView(
-          children: [
-            imageSection,
-            titleSection,
-            buttonSection,
-            textSection,
-          ],
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(name),
+        backgroundColor: Color(0xFFE0BF92),
+      ),
+      body: ListView(
+        children: [
+          imageSection,
+          cvSection,
+          titleSection,
+          buttonSection,
+          textSection,
+        ],
       ),
     );
   }

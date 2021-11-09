@@ -25,9 +25,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     final user = context.watch<User?>();
 
-    if (user != null) {
-      return MyApp();
-    } else {
+    if (user == null) {
       return MaterialApp(
         title: 'Liguey',
         home: Scaffold(
@@ -141,6 +139,8 @@ class _LoginState extends State<Login> {
           ),
         ),
       );
+    } else {
+      return MyApp();
     }
   }
 }

@@ -252,7 +252,14 @@ class _MyLocationState extends State<MyLocation> {
                               children: <Widget>[
                                 ListTile(
                                     onTap: () {
-                                      if (user != null) {
+                                      if (user == null) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => Login(),
+                                          ),
+                                        );
+                                      } else {
                                         double dist = Geolocator.distanceBetween(lat, lng, lastOffres[index]["lat"], lastOffres[index]["lng"])/1000;
 
                                         String distance =(dist.round()).toString();
@@ -278,13 +285,6 @@ class _MyLocationState extends State<MyLocation> {
                                                 'sector': lastOffres[index]["sector"],
                                               },
                                             ),
-                                          ),
-                                        );
-                                      } else {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => Login(),
                                           ),
                                         );
                                       }
@@ -407,8 +407,14 @@ class _MyLocationState extends State<MyLocation> {
                               children: <Widget>[
                                 ListTile(
                                     onTap: () {
-                                      if (user != null) {
-
+                                      if (user == null) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => Login(),
+                                          ),
+                                        );
+                                      } else {
                                         double dist = Geolocator.distanceBetween(lat, lng, lastDemandes[index]["lat"], lastDemandes[index]["lng"])/1000;
                                         String distance =(dist.round()).toString();
                                         Navigator.push(
@@ -432,13 +438,6 @@ class _MyLocationState extends State<MyLocation> {
                                                 'sector': lastDemandes[index]["sector"],
                                               },
                                             ),
-                                          ),
-                                        );
-                                      } else {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => Login(),
                                           ),
                                         );
                                       }

@@ -42,8 +42,11 @@ class Translations {
       'TLieu' : "Location : ",
       'TNombre' : "Number : ",
       'langue' : "ENG",
-      'picture' : "Take a picture",
+      'picture' : "Upload a picture",
       'profil' : "My Account",
+      'cv' : "Upload a resume",
+      'seecv' : "See my resume",
+      'moncv' : "Resume",
     },
     'fr': {
       'welcome': "Bienvenue sur LIGUEY,\n\ninscrivez-vous pour accéder aux annonces",
@@ -79,6 +82,9 @@ class Translations {
       'langue' : "FR",
       'picture' : "Ajouter une photo",
       'profil' : "Mon Compte",
+      'cv' : "Ajouter un CV",
+      'seecv' : "Voir mon CV",
+      'moncv' : "CV",
 
     }
   };

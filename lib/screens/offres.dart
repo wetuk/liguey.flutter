@@ -12,6 +12,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'dart:math';
 
 //https://github.com/theandroidclassroom/flutter_realtime_database/blob/master/lib/screens/contacts.dart
 
@@ -22,7 +27,6 @@ class Offres extends StatefulWidget {
 }
 
 class _OffresState extends State<Offres> {
-  var image;
   late UserModel annonce;
   late DatabaseReference Ref;
   late double lat=0;
@@ -52,6 +56,28 @@ class _OffresState extends State<Offres> {
     lat = arguments['lat'];
     lng = arguments['lng'];
     category = arguments['category'];
+  }
+
+  late Uint8List targetlUinit8List;
+  late Uint8List originalUnit8List;
+
+  Future<String> _loadImage(String imageName) async {
+    String result = await FirebaseStorage.instance.ref().child("mini").child(imageName).getDownloadURL();
+
+    http.Response response = await http.get(Uri.parse(result));
+    originalUnit8List = response.bodyBytes;
+    var decodedImage = await decodeImageFromList(originalUnit8List);
+    int newHeight = ( decodedImage.height * ( 50 / decodedImage.width)).floor();
+
+    var codec = await ui.instantiateImageCodec(originalUnit8List,
+        targetHeight: 50, targetWidth: newHeight);
+    var frameInfo = await codec.getNextFrame();
+    ui.Image targetUiImage = frameInfo.image;
+
+    ByteData? targetByteData = await targetUiImage.toByteData(format: ui.ImageByteFormat.png);
+//    await FirebaseStorage.instance.ref().child("mini").child(imageName).putData(targetByteData!.buffer.asUint8List());
+
+    return result;
   }
 
   @override
@@ -224,10 +250,5 @@ class _OffresState extends State<Offres> {
         ),
       ),
     );
-  }
-
-  Future<String> _loadImage(String image) async {
-    String result = await FirebaseStorage.instance.ref().child("images").child(image).getDownloadURL();
-    return result;
   }
 }

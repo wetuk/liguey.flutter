@@ -3,6 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_liguey/main.dart';
+import 'package:flutter_liguey/screens/cv.dart';
 import 'package:flutter_liguey/screens/picture.dart';
 import 'package:flutter_liguey/services/auth_services.dart';
 import 'package:flutter_liguey/translations.dart';
@@ -204,7 +205,7 @@ class _ProfilState extends State<Profil> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => Picture(),
+              builder: (context) => CV(),
               settings: RouteSettings(
                 arguments: {
                   'id': uid,
@@ -220,7 +221,7 @@ class _ProfilState extends State<Profil> {
         mainAxisAlignment: MainAxisAlignment.center,
 
         children: [
-          Icon(icon, color: color),
+          Icon(icon, color: color, size: 40,),
           Container(
             margin: const EdgeInsets.only(top: 8),
             child: Text(
@@ -239,11 +240,6 @@ class _ProfilState extends State<Profil> {
 
   Future<String> _loadImage(String image) async {
     String result = await FirebaseStorage.instance.ref().child("images").child(image).getDownloadURL();
-    return result;
-  }
-
-  Future<String> _loadCV(String image) async {
-    String result = await FirebaseStorage.instance.ref().child("cv").child(image).getDownloadURL();
     return result;
   }
 }
