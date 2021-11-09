@@ -4,14 +4,37 @@ import 'package:flutter_liguey/screens/register.dart';
 import 'package:flutter_liguey/services/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_liguey/translations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-class Login extends StatefulWidget {
+
+class Login extends StatelessWidget {
+
   @override
-  _LoginState createState() => _LoginState();
+  Widget build(BuildContext context) {
+
+    return MaterialApp(
+      title: "Liguey",
+      localizationsDelegates: [
+        TranslationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('en', ''),
+        const Locale('fr', ''),
+      ],
+      home: Log(),
+    );
+  }
 }
 
-class _LoginState extends State<Login> {
+class Log extends StatefulWidget {
+  @override
+  _LogState createState() => _LogState();
+}
+
+class _LogState extends State<Log> {
   TextEditingController emailController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
 
@@ -28,6 +51,14 @@ class _LoginState extends State<Login> {
     if (user == null) {
       return MaterialApp(
         title: 'Liguey',
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: [
+          const Locale('en', ''),
+          const Locale('fr', ''),
+        ],
         home: Scaffold(
           appBar: AppBar(
             title: const Text('Liguey'),

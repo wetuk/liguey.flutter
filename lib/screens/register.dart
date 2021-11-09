@@ -1,4 +1,3 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_liguey/main.dart';
 import 'package:flutter_liguey/screens/login.dart';
@@ -24,12 +23,6 @@ class _RegisterState extends State<Register> {
       context,
       MaterialPageRoute(builder: (context) => MyApp()),
           (Route<dynamic> route) => false,
-    );
-  }
-
-  void _login(BuildContext context) async {
-    await Navigator.push(context,
-      MaterialPageRoute(builder: (context) => Login()),
     );
   }
 
